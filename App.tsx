@@ -6,6 +6,7 @@ import HomeView from './views/HomeView';
 import CalendarView from './views/CalendarView';
 import CondoView from './views/CondoView';
 import NewAgentsView from './views/NewAgentsView';
+import SalesView from './views/SalesView';
 import GeminiChat from './components/Chat/GeminiChat';
 
 const App: React.FC = () => {
@@ -19,6 +20,8 @@ const App: React.FC = () => {
         return <NewAgentsView />;
       case 'EVENT CALENDAR':
         return <CalendarView />;
+      case 'SALES':
+        return <SalesView />;
       case 'CONDOS':
         return <CondoView />;
       default:
