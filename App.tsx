@@ -5,6 +5,7 @@ import Navbar from './components/Layout/Navbar';
 import HomeView from './views/HomeView';
 import CalendarView from './views/CalendarView';
 import CondoView from './views/CondoView';
+import NewAgentsView from './views/NewAgentsView';
 import GeminiChat from './components/Chat/GeminiChat';
 
 const App: React.FC = () => {
@@ -14,6 +15,8 @@ const App: React.FC = () => {
     switch (activeTab) {
       case 'HOME':
         return <HomeView />;
+      case 'NEW AGENTS':
+        return <NewAgentsView />;
       case 'EVENT CALENDAR':
         return <CalendarView />;
       case 'CONDOS':
@@ -58,7 +61,7 @@ const App: React.FC = () => {
         </div>
       </footer>
 
-      <GeminiChat />
+      < GeminiChat />
     </div>
   );
 };
