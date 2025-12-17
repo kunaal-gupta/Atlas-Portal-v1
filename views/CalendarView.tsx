@@ -1,12 +1,37 @@
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, RefreshCcw, Plus, MapPin, Clock, Search } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, 
+  RefreshCcw, 
+  Plus, 
+  MapPin, 
+  Clock, 
+  Search,
+  ThumbsUp,
+  Eye,
+  Bookmark,
+  CalendarPlus
+} from 'lucide-react';
 
 const EVENTS = [
-  { id: 1, title: 'Weekly Agent Briefing', date: 'Feb 10', time: '09:00 AM', location: 'Conference Room A', type: 'Upcoming' },
-  { id: 2, title: 'Downtown Condo Launch Strategy', date: 'Feb 12', time: '02:00 PM', location: 'Virtual / Zoom', type: 'Upcoming' },
-  { id: 3, title: 'New Agent Onboarding', date: 'Feb 15', time: '10:00 AM', location: 'Meeting Room 4', type: 'Upcoming' },
-  { id: 4, title: 'Q4 Performance Review', date: 'Jan 15', time: '01:00 PM', location: 'Headquarters', type: 'Past' },
+  { 
+    id: 1, 
+    title: 'Meeting title', 
+    date: '01', 
+    month: 'MONTH', 
+    time: 'Mon 12:00 PM', 
+    location: 'Location', 
+    type: 'Upcoming' 
+  },
+  { 
+    id: 2, 
+    title: 'Meeting title', 
+    date: '01', 
+    month: 'MONTH', 
+    time: 'Mon 12:00 PM', 
+    location: 'Location', 
+    type: 'Upcoming' 
+  },
 ];
 
 const CalendarView: React.FC = () => {
@@ -15,96 +40,122 @@ const CalendarView: React.FC = () => {
   const filteredEvents = EVENTS.filter(e => e.type === activeSubTab);
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-white">Event Calendar</h2>
-          <p className="text-slate-400 text-sm mt-1">Stay updated with company meetings and events.</p>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
+      {/* Hero Banner Section */}
+      <section className="relative h-[300px] overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=1500" 
+          className="absolute inset-0 w-full h-full object-cover"
+          alt="Calendar Banner"
+        />
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute bottom-0 left-0 w-full md:w-2/3 bg-[#1a1a1a]/95 backdrop-blur-sm p-8">
+          <h2 className="text-4xl font-bold text-white uppercase tracking-tight">EVENT CALENDAR</h2>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition-all">
-            <RefreshCcw className="w-4 h-4" />
-            <span>Sync Calendar</span>
-          </button>
-          <button className="flex items-center space-x-2 px-6 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-xs font-bold text-white shadow-lg shadow-pink-600/20 transition-all">
-            <Plus className="w-4 h-4" />
-            <span>Create Meeting</span>
-          </button>
+      </section>
+
+      {/* Navigation & Actions Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between border-b border-white/5 pb-2 px-4">
+        <div className="flex space-x-8">
+          {['Upcoming', 'Past'].map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveSubTab(t as any)}
+              className={`pb-4 text-sm font-bold transition-all relative ${
+                activeSubTab === t ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t}
+              {activeSubTab === t && (
+                <div className="absolute bottom-0 left-0 w-full h-[3px] bg-pink-600"></div>
+              )}
+            </button>
+          ))}
         </div>
+        
+        <button className="flex items-center space-x-2 text-[13px] font-medium text-slate-300 hover:text-pink-500 transition-colors py-2">
+          <RefreshCcw className="w-4 h-4 text-pink-600" />
+          <span>Sync calendar</span>
+        </button>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
-        <div className="flex border-b border-slate-800 p-4 justify-between items-center bg-slate-900/50">
-          <div className="flex space-x-1 p-1 bg-slate-950 rounded-xl">
-            {['Upcoming', 'Past'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setActiveSubTab(t as any)}
-                className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${
-                  activeSubTab === t ? 'bg-slate-800 text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" 
-              placeholder="Filter events..." 
-              className="bg-slate-950 border border-slate-800 rounded-lg py-1.5 pl-10 pr-4 text-xs outline-none focus:ring-1 focus:ring-pink-500"
-            />
-          </div>
-        </div>
-
-        <div className="divide-y divide-slate-800">
-          {filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <div key={event.id} className="flex flex-col sm:flex-row items-start sm:items-center p-6 group hover:bg-slate-800/30 transition-all cursor-pointer">
-                <div className="flex-shrink-0 mb-4 sm:mb-0 mr-8 text-center min-w-[80px]">
-                  <div className="text-[10px] font-black uppercase text-slate-500 tracking-tighter mb-1">Month</div>
-                  <div className="text-4xl font-black text-slate-300 group-hover:text-pink-500 transition-colors">
-                    {event.date.split(' ')[1]}
-                  </div>
-                  <div className="text-xs font-bold text-slate-500">{event.date.split(' ')[0]}</div>
-                </div>
-                
-                <div className="flex-grow">
-                  <h4 className="text-lg font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">
-                    {event.title}
-                  </h4>
-                  <div className="flex flex-wrap gap-4 text-xs text-slate-400">
-                    <div className="flex items-center">
-                      <Clock className="w-3.5 h-3.5 mr-1.5 text-pink-500" />
-                      {event.time}
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="w-3.5 h-3.5 mr-1.5 text-pink-500" />
-                      {event.location}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="px-4 py-2 bg-slate-800 hover:bg-pink-600 rounded-lg text-[10px] font-bold text-white transition-all uppercase tracking-widest">
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-20 text-center">
-              <div className="flex justify-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
-                  <CalendarIcon className="w-8 h-8 text-slate-600" />
-                </div>
-              </div>
-              <p className="text-slate-400 font-medium">No events found for this category.</p>
-              <p className="text-slate-500 text-xs mt-2">Check back later or try changing your filters.</p>
+      {/* Calendar List Content */}
+      <div className="space-y-0.5">
+        {activeSubTab === 'Upcoming' && (
+          <div className="flex group cursor-pointer border-b border-white/5">
+            <div className="w-48 h-44 bg-pink-600 flex items-center justify-center shrink-0">
+              <CalendarPlus className="w-12 h-12 text-white" />
             </div>
-          )}
-        </div>
+            <div className="flex-grow flex flex-col justify-center p-8 bg-[#1a1a1a]/40 hover:bg-[#1a1a1a]/60 transition-colors">
+              <h4 className="text-lg font-bold text-pink-500 mb-2">Create a meeting</h4>
+              <p className="text-slate-300 text-sm">When you add a meeting, it will show here where everyone can see it.</p>
+            </div>
+          </div>
+        )}
+
+        {filteredEvents.map((event) => (
+          <div key={event.id} className="flex flex-col border-b border-white/5">
+            <div className="flex">
+              {/* Date Box */}
+              <div className="w-48 bg-[#1a1a1a]/60 flex flex-col items-center justify-center py-10 shrink-0 border-r border-white/5">
+                <div className="text-[14px] font-black text-slate-300 tracking-tighter uppercase mb-0.5">{event.month}</div>
+                <div className="text-5xl font-black text-slate-300 leading-none">
+                  {event.date}
+                </div>
+              </div>
+              
+              {/* Event Info */}
+              <div className="flex-grow p-8 bg-[#1a1a1a]/30 hover:bg-[#1a1a1a]/50 transition-colors">
+                <h4 className="text-xl font-bold text-white mb-3">
+                  {event.title}
+                </h4>
+                <div className="space-y-1 text-sm font-bold text-slate-400">
+                  <div className="flex items-center uppercase tracking-tight">
+                    {event.time}
+                  </div>
+                  <div className="flex items-center uppercase tracking-tight">
+                    {event.location}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Event Footer Actions */}
+            <div className="flex items-center space-x-8 px-8 py-4 bg-[#1a1a1a]/20">
+               <button className="flex items-center space-x-2 text-[12px] font-bold text-slate-400 hover:text-pink-500 transition-colors group">
+                 <ThumbsUp className="w-4 h-4 text-pink-600 group-hover:scale-110 transition-transform" />
+                 <span className="uppercase tracking-tight">Like</span>
+               </button>
+               <div className="flex items-center space-x-2 text-[12px] font-bold text-slate-400">
+                 <Eye className="w-4 h-4 text-pink-600" />
+                 <span className="uppercase tracking-tight">68 Views</span>
+               </div>
+               <button className="flex items-center space-x-2 text-[12px] font-bold text-slate-400 hover:text-pink-500 transition-colors group">
+                 <Bookmark className="w-4 h-4 text-pink-600 group-hover:scale-110 transition-transform" />
+                 <span className="uppercase tracking-tight">Save for later</span>
+               </button>
+            </div>
+          </div>
+        ))}
+
+        {filteredEvents.length === 0 && activeSubTab === 'Past' && (
+          <div className="py-24 text-center bg-[#1a1a1a]/20 rounded-3xl">
+            <CalendarIcon className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+            <p className="text-slate-500 font-bold uppercase tracking-widest">No past events found</p>
+          </div>
+        )}
+      </div>
+
+      {/* View All Search placeholder if needed */}
+      <div className="flex justify-end p-4">
+         <div className="relative w-full max-w-xs">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+           <input 
+             type="text" 
+             placeholder="Search events..." 
+             className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs text-white outline-none focus:border-pink-500 transition-colors"
+           />
+         </div>
       </div>
     </div>
   );
