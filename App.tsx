@@ -36,12 +36,12 @@ const App: React.FC = () => {
       <Header />
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <main className="flex-grow container mx-auto px-8 py-10 max-w-[1500px]">
+      <main className="flex-grow container mx-auto px-6 md:px-12 lg:px-16 py-12 max-w-[1600px]">
         {renderContent()}
       </main>
 
       <footer className="border-t border-white/5 py-12 bg-slate-900/50">
-        <div className="container mx-auto px-8 max-w-[1500px]">
+        <div className="container mx-auto px-6 md:px-12 lg:px-16 max-w-[1600px]">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center space-x-3 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer">
               <div className="w-6 h-6 bg-rose-500 rounded-md"></div>
