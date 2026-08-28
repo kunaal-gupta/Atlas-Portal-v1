@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/api': 'http://127.0.0.1:8000',
+          '/admin': 'http://127.0.0.1:8000',
+          '/media': 'http://127.0.0.1:8000',
+        },
       },
       plugins: [react()],
       define: {
