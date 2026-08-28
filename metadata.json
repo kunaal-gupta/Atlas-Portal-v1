@@ -1,8 +1,5 @@
 {
-  "name": "Mozaic Agent Portal",
-  "description": "A modern, professional enterprise portal for real estate agents, featuring news, event calendars, resource links, and an AI-powered chatbot with reasoning capabilities.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
+  "name": "Atlas Agent Portal",
+  "description": "A modern, professional directory for agent reporting, training, marketing, neighbourhood, and compliance resources.",
+  "requestFramePermissions": []
 }
