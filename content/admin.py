@@ -43,7 +43,6 @@ class EventAdmin(admin.ModelAdmin):
     readonly_fields = ("views", "created_at", "updated_at")
 
 
-admin.site.site_header = "Mozaic Portal Administration"
-admin.site.site_title = "Mozaic Admin"
+admin.site.site_header = "Atlas Administration"
+admin.site.site_title = "Atlas Admin"
 admin.site.index_title = "Content management"
-

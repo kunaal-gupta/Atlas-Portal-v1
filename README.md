@@ -2,9 +2,9 @@
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Mozaic Agent Portal
+# Atlas Agent Portal
 
-The portal now combines the existing React/Vite interface with a Django REST backend and Django's full content-management admin. News, categorized resources, file uploads, and calendar events can be managed without changing code.
+Atlas combines a streamlined React/Vite resource directory with a Django REST backend and Django's full content-management admin. Categorized resources, news, file uploads, and calendar events can be managed without changing code.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1Zs3AP58b3sim10f60Zy0cPbGviyLCw6F
 
