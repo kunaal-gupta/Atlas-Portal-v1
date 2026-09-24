@@ -23,6 +23,14 @@ type SkySlopeNumbers = {
   updatedAt?: string;
 };
 
+type ApiNewsItem = {
+  id: string | number;
+  title: string;
+  excerpt?: string;
+  department?: string;
+  published_at: string;
+};
+
 const fallbackNews: NewsItem[] = [
   { id: 'internal-1', title: 'Atlas fall learning calendar is now live', excerpt: 'Reserve your seat for this month’s workshops, market briefings, and compliance clinics.', source: 'Atlas learning team', date: 'Sep 22', type: 'Internal', href: '/resources/news-and-events/', accent: 'from-indigo-700 via-violet-700 to-fuchsia-600' },
   { id: 'outside-1', title: 'What shifting inventory means for buyers this fall', excerpt: 'A quick field guide to turning current market movement into confident client conversations.', source: 'Market intelligence', date: 'Sep 20', type: 'Outside', href: '/the-numbers/market/', accent: 'from-cyan-700 via-blue-700 to-indigo-800' },
@@ -52,8 +60,8 @@ export default function HomeDashboard() {
       .then((payload) => {
         const rows = Array.isArray(payload) ? payload : payload.results;
         if (!Array.isArray(rows) || !rows.length) return;
-        const internal = rows.slice(0, 2).map((item: any, index: number): NewsItem => ({
-          id: `api-${item.id}`, title: item.title, excerpt: item.excerpt, source: item.department || 'Atlas team',
+        const internal = (rows as ApiNewsItem[]).slice(0, 2).map((item, index): NewsItem => ({
+          id: `api-${item.id}`, title: item.title, excerpt: item.excerpt || 'Open this update for the complete story and important details.', source: item.department || 'Atlas team',
           date: new Date(item.published_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), type: 'Internal',
           href: '/resources/news-and-events/', accent: index ? 'from-rose-600 via-pink-700 to-violet-800' : 'from-indigo-700 via-violet-700 to-fuchsia-600',
         }));
@@ -62,7 +70,12 @@ export default function HomeDashboard() {
 
     fetch('/api/skyslope/numbers/')
       .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((payload: SkySlopeNumbers) => { setNumbers(payload); setNumbersLive(true); })
+      .then((payload: SkySlopeNumbers) => {
+        if ([payload.activeListings, payload.pendingTransactions, payload.closedThisMonth, payload.salesVolume].every(Number.isFinite)) {
+          setNumbers(payload);
+          setNumbersLive(true);
+        }
+      })
       .catch(() => undefined);
   }, []);
 
@@ -86,7 +99,8 @@ export default function HomeDashboard() {
     <div className="grid gap-8 xl:grid-cols-[minmax(0,1.65fr)_minmax(340px,.75fr)]">
       <section aria-labelledby="news-heading">
         <div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Stay informed</p><h2 id="news-heading" className="mt-1 text-2xl font-extrabold">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 2 + news.length) % news.length)} aria-label="Previous news" className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 2) % news.length)} aria-label="Next news" className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
-        <div className="grid gap-5 md:grid-cols-2">{visibleNews.map((item) => <a href={item.href} key={item.id} className={`group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br ${item.accent} p-7 text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl`}><div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10 blur-2xl" /><div className="relative flex items-center justify-between"><span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider backdrop-blur"><Newspaper className="h-3.5 w-3.5" />{item.type} news</span>{item.type === 'Outside' && <ExternalLink className="h-4 w-4 text-white/70" />}</div><div className="relative"><p className="mb-3 text-xs font-semibold text-white/65">{item.source} · {item.date}</p><h3 className="text-2xl font-black leading-tight tracking-tight">{item.title}</h3><p className="mt-3 line-clamp-2 text-sm leading-6 text-white/75">{item.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold">Read story <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span></div></a>)}</div>
+        <div className="grid gap-5 md:grid-cols-2">{visibleNews.map((item) => <a href={item.href} key={item.id} className={`group relative flex min-h-72 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br ${item.accent} p-7 text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl`}><div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:20px_20px]" /><div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/20 blur-2xl transition duration-700 group-hover:scale-125" /><div className="relative flex items-center justify-between"><span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.14em] backdrop-blur"><Newspaper className="h-3.5 w-3.5" />{item.type} news</span>{item.type === 'Outside' && <ExternalLink className="h-4 w-4 text-white/70" />}</div><div className="relative"><p className="mb-3 text-xs font-semibold text-white/65">{item.source} · {item.date}</p><h3 className="text-2xl font-extrabold leading-tight tracking-[-.025em]">{item.title}</h3><p className="mt-3 line-clamp-2 text-sm leading-6 text-white/75">{item.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider">Read story <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span></div></a>)}</div>
+        <div className="mt-4 flex justify-center gap-1.5" aria-label="News pages">{Array.from({ length: Math.ceil(news.length / 2) }).map((_, index) => <button key={index} onClick={() => setSlide(index * 2)} aria-label={`Show news page ${index + 1}`} className={`h-1.5 rounded-full transition-all ${Math.floor(slide / 2) === index ? 'w-7 bg-indigo-600' : 'w-1.5 bg-slate-300 dark:bg-slate-700'}`} />)}</div>
       </section>
 
       <section aria-labelledby="announcements-heading" className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
