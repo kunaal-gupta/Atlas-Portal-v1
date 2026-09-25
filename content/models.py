@@ -10,6 +10,41 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+class Agent(models.Model):
+    """A directory profile for an Atlas agent.
+
+    This intentionally lives separately from Django's authentication user so
+    directory records can be imported from the brokerage's user system without
+    granting portal access.
+    """
+
+    userid = models.CharField(max_length=255, primary_key=True)
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=50, blank=True)
+    company = models.CharField(max_length=255, blank=True)
+    access_role = models.CharField(max_length=100)
+    professional_role = models.CharField(max_length=150, blank=True)
+    status = models.CharField(max_length=50, default="Active", db_index=True)
+    job_title = models.CharField(max_length=150, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    license_number = models.CharField(max_length=100, blank=True)
+    license_expiry = models.DateField(blank=True, null=True)
+    profile_photo = models.URLField(blank=True)
+    internal_notes = models.CharField(max_length=500, blank=True)
+    last_active = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    company_banner = models.URLField(blank=True)
+
+    class Meta:
+        ordering = ["full_name"]
+        db_table = "users"
+
+    def __str__(self):
+        return self.full_name
+
+
 class NewsArticle(TimeStampedModel):
     title = models.CharField(max_length=255)
     excerpt = models.TextField(blank=True)
@@ -81,4 +116,3 @@ class Event(TimeStampedModel):
         from django.core.exceptions import ValidationError
         if self.end_at <= self.start_at:
             raise ValidationError({"end_at": "End time must be after start time."})
-
