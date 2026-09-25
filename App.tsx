@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bell, BookOpen, CalendarDays, Check, CheckCircle2,
   ChevronDown, Download, ExternalLink, FileText, GraduationCap, MapPinned,
-  Command, Megaphone, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, UserRound, X,
+  Command, Grid2X2, List, Mail, MapPin, Megaphone, Menu, Moon, Phone, Search,
+  ShieldCheck, Sparkles, Sun, UserRound, X,
 } from 'lucide-react';
 import HomeDashboard from './components/Home/HomeDashboard';
+import type { Agent } from './types';
 
 type Link = { name: string; summary: string };
 type Category = { name: string; description: string; icon: React.ElementType; links: Link[] };
@@ -120,7 +122,7 @@ const App: React.FC = () => {
     </header>
 
     <nav className={`${mobileOpen ? 'block' : 'hidden'} relative z-30 border-b border-slate-200/70 bg-white/95 lg:block dark:border-white/10 dark:bg-slate-950/95`} aria-label="Resource categories">
-      <div className="mx-auto max-w-[1500px] px-5 lg:flex lg:h-14 lg:items-stretch lg:justify-start lg:px-10">
+      <div className="mx-auto max-w-[1500px] px-5 lg:flex lg:h-14 lg:items-stretch lg:justify-center lg:px-10">
         {categories.map((category) => <div key={category.name} className="group relative border-b border-slate-100 last:border-0 lg:border-0">
           <button className="flex w-full items-center justify-between gap-2 px-4 py-4 text-[12px] font-bold text-slate-600 group-hover:text-indigo-600 lg:h-full lg:w-auto dark:text-slate-300"><span>{category.name}</span><ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" /></button>
           <div className="hidden pb-3 group-hover:block group-focus-within:block lg:absolute lg:left-0 lg:top-full lg:w-80 lg:rounded-b-2xl lg:border lg:border-slate-200 lg:bg-white lg:p-3 lg:shadow-2xl dark:lg:border-slate-700 dark:lg:bg-slate-800">
@@ -150,16 +152,65 @@ function ResourcePage({ category, link }: { category: Category; link: Link }) {
   const Icon = category.icon;
   const related = category.links.filter((item) => item.name !== link.name).slice(0, 3);
   const theme = categoryTheme[category.name];
-  return <div className="relative mx-auto max-w-[1400px] px-5 py-8 lg:px-10 lg:py-12">
+  return <div className="relative mx-auto max-w-[1400px] px-5 py-5 lg:px-10 lg:py-7">
     <div className={`pointer-events-none absolute right-0 top-0 -z-0 h-80 w-80 rounded-full blur-3xl ${theme.glow}`} />
-    <div className="mb-7 flex items-center gap-2 text-xs font-bold text-slate-400"><a href="/" className="hover:text-indigo-600">Home</a><span>/</span><span>{category.name}</span><span>/</span><span className="text-slate-700 dark:text-slate-200">{link.name}</span></div>
-    <div className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-br ${theme.gradient} p-7 text-white shadow-[0_30px_70px_-35px_rgba(15,23,42,.7)] sm:p-10 lg:p-12`}><div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]" /><div className="absolute -right-12 -top-20 h-72 w-72 rounded-full bg-white/20 blur-3xl" /><div className="relative flex flex-col justify-between gap-10 lg:flex-row lg:items-end"><div className="flex max-w-3xl flex-col gap-6 sm:flex-row sm:items-start"><div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur"><Icon className="h-7 w-7" /></div><div><p className="text-[11px] font-bold uppercase tracking-[.2em] text-white/70">{category.name} collection</p><h1 className="mt-2 text-4xl font-extrabold tracking-[-.04em] sm:text-6xl">{link.name}</h1><p className="mt-4 max-w-2xl text-base leading-7 text-white/80">{link.summary} Access current, company-approved knowledge maintained for Atlas agents.</p></div></div><div className="flex shrink-0 gap-3"><a href="#library" className="rounded-xl bg-white px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-950">Open library</a><a href="mailto:support@atlas.company" className="rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-xs font-bold uppercase tracking-wider backdrop-blur">Ask an expert</a></div></div></div>
-    <div className="mt-8 grid gap-8 xl:grid-cols-[230px_minmax(0,1fr)]"><aside className="hidden xl:block"><div className="sticky top-40 rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80"><p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[.18em] text-slate-400">In this collection</p>{category.links.map((item) => <a key={item.name} href={pathFor(category, item)} className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${item.name === link.name ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-950 dark:hover:bg-slate-800 dark:hover:text-white'}`}><span>{item.name}</span>{item.name === link.name ? <Check className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5 opacity-40" />}</a>)}</div></aside><div><PageWorkspace category={category} link={link} />
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${theme.gradient} px-5 py-4 text-white shadow-lg sm:px-6`}><div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:18px_18px]" /><div className="relative flex items-center gap-4"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15 ring-1 ring-white/20"><Icon className="h-5 w-5" /></div><div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-white/70">{category.name}</p><h1 className="text-2xl font-extrabold tracking-[-.03em]">{link.name}</h1></div></div></div>
+    <div className="mt-6 grid gap-8 xl:grid-cols-[230px_minmax(0,1fr)]"><aside className="hidden xl:block"><div className="sticky top-40 rounded-2xl border border-slate-200/80 bg-white/80 p-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80"><p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[.18em] text-slate-400">In this collection</p>{category.links.map((item) => <a key={item.name} href={pathFor(category, item)} className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${item.name === link.name ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-950 dark:hover:bg-slate-800 dark:hover:text-white'}`}><span>{item.name}</span>{item.name === link.name ? <Check className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5 opacity-40" />}</a>)}</div></aside><div>{category.name === 'The Numbers' && link.name === 'Agent' ? <AgentDirectory /> : <><PageWorkspace category={category} link={link} />
     <div id="library" className="mt-10 grid gap-6 lg:grid-cols-[1fr_300px]"><section><div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600">Curated for you</p><h2 className="mt-1 text-2xl font-extrabold tracking-tight">{category.name === 'Marketing' ? 'Approved assets' : category.name === 'Training' ? 'Course materials' : category.name === 'The Numbers' ? 'Reports & exports' : 'Resource library'}</h2></div><span className="text-xs text-slate-400">3 files</span></div><div className="grid gap-3">{[`${link.name} — agent guide`, `${link.name} checklist & workflow`, `${link.name} reference library`].map((name, index) => <a key={name} href={`/media/resources/${slugify(link.name)}-${index + 1}.pdf`} className="group flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90"><span className={`grid h-12 w-12 place-items-center rounded-xl ${theme.icon}`}><FileText className="h-5 w-5" /></span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{name}</b><small className="mt-1 block text-slate-500">PDF · Company approved · Updated Sep 2026</small></span><span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-50 text-slate-400 transition group-hover:bg-indigo-600 group-hover:text-white dark:bg-slate-800"><Download className="h-4 w-4" /></span></a>)}</div></section>
       <aside className="space-y-5"><div className="relative overflow-hidden rounded-3xl bg-[#0b1020] p-6 text-white"><div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-indigo-500/30 blur-2xl" /><CheckCircle2 className="relative h-6 w-6 text-indigo-300" /><h2 className="relative mt-5 text-lg font-bold">Expert guidance</h2><p className="relative mt-2 text-sm leading-6 text-slate-300">Get an answer from the office team or request a resource for this collection.</p><a href="mailto:support@atlas.company" className="relative mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider">Contact support <ExternalLink className="h-4 w-4" /></a></div><div className="rounded-2xl border border-slate-200 bg-white/90 p-5 dark:border-slate-800 dark:bg-slate-900/90"><h3 className="text-sm font-bold">Continue exploring</h3>{related.map((item) => <a key={item.name} href={pathFor(category, item)} className="mt-4 flex items-center justify-between text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-300"><span>{item.name}</span><ArrowRight className="h-3.5 w-3.5" /></a>)}</div></aside>
-    </div></div>
+    </div></> }</div>
     </div>
   </div>;
+}
+
+function AgentDirectory() {
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [query, setQuery] = useState('');
+  const [view, setView] = useState<'tiles' | 'list'>(() => localStorage.getItem('atlas-agent-view') === 'list' ? 'list' : 'tiles');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/agents/')
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to load agents');
+        return response.json();
+      })
+      .then((data) => setAgents(Array.isArray(data) ? data : data.results ?? []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const visibleAgents = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    if (!value) return agents;
+    return agents.filter((agent) => [agent.full_name, agent.email, agent.job_title, agent.professional_role, agent.location, agent.company].some((field) => field?.toLowerCase().includes(value)));
+  }, [agents, query]);
+
+  const selectView = (nextView: 'tiles' | 'list') => {
+    setView(nextView);
+    localStorage.setItem('atlas-agent-view', nextView);
+  };
+
+  const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+  const role = (agent: Agent) => agent.job_title || agent.professional_role || agent.access_role;
+
+  return <section aria-labelledby="agent-directory-title">
+    <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800">
+      <div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Company directory</p><h2 id="agent-directory-title" className="mt-1 text-2xl font-extrabold tracking-tight">All agents</h2><p className="mt-1 text-sm text-slate-500">{loading ? 'Loading directory…' : `${visibleAgents.length} of ${agents.length} agents`}</p></div>
+      <div className="flex gap-2"><label className="relative min-w-0 flex-1 sm:w-72"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search agents" className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:focus:ring-indigo-950" /></label><div className="flex rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900" aria-label="Directory view"><button onClick={() => selectView('tiles')} className={`grid h-9 w-9 place-items-center rounded-lg ${view === 'tiles' ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'text-slate-400'}`} aria-label="Tile view" aria-pressed={view === 'tiles'}><Grid2X2 className="h-4 w-4" /></button><button onClick={() => selectView('list')} className={`grid h-9 w-9 place-items-center rounded-lg ${view === 'list' ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'text-slate-400'}`} aria-label="List view" aria-pressed={view === 'list'}><List className="h-4 w-4" /></button></div></div>
+    </div>
+    {error ? <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">The agent directory could not be loaded. Please try again shortly.</div> : loading ? <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div key={item} className="h-52 animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800" />)}</div> : visibleAgents.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700"><UserRound className="mx-auto h-8 w-8 text-slate-300" /><h3 className="mt-3 font-bold">No agents found</h3><p className="mt-1 text-sm text-slate-500">{query ? 'Try a different name, role, or location.' : 'Agent profiles added in Atlas Administration will appear here.'}</p></div> : view === 'tiles' ? <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{visibleAgents.map((agent) => <article key={agent.userid} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="h-16 bg-gradient-to-r from-indigo-600 to-cyan-500" style={agent.company_banner ? { backgroundImage: `url(${agent.company_banner})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined} /><div className="px-5 pb-5"><AgentAvatar agent={agent} initials={initials(agent.full_name)} className="-mt-8" /><div className="mt-3 flex items-start justify-between gap-3"><div><h3 className="font-extrabold">{agent.full_name}</h3><p className="text-xs text-slate-500">{role(agent)}</p></div><StatusPill status={agent.status} /></div><div className="mt-5 space-y-2 text-xs text-slate-500"><a href={`mailto:${agent.email}`} className="flex items-center gap-2 truncate hover:text-indigo-600"><Mail className="h-3.5 w-3.5" />{agent.email}</a>{agent.phone_number && <a href={`tel:${agent.phone_number}`} className="flex items-center gap-2 hover:text-indigo-600"><Phone className="h-3.5 w-3.5" />{agent.phone_number}</a>}{agent.location && <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" />{agent.location}</p>}</div></div></article>)}</div> : <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"><table className="w-full min-w-[760px] text-left"><thead className="border-b border-slate-200 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950"><tr><th className="px-5 py-3">Agent</th><th className="px-5 py-3">Role</th><th className="px-5 py-3">Location</th><th className="px-5 py-3">Contact</th><th className="px-5 py-3">Status</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{visibleAgents.map((agent) => <tr key={agent.userid} className="hover:bg-slate-50 dark:hover:bg-slate-800/50"><td className="px-5 py-4"><div className="flex items-center gap-3"><AgentAvatar agent={agent} initials={initials(agent.full_name)} className="h-10 w-10" /><div><b className="block text-sm">{agent.full_name}</b><span className="text-xs text-slate-500">{agent.company}</span></div></div></td><td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-300">{role(agent)}</td><td className="px-5 py-4 text-sm text-slate-500">{agent.location || '—'}</td><td className="px-5 py-4"><a href={`mailto:${agent.email}`} className="block text-sm text-indigo-600 hover:underline dark:text-indigo-400">{agent.email}</a><span className="text-xs text-slate-500">{agent.phone_number}</span></td><td className="px-5 py-4"><StatusPill status={agent.status} /></td></tr>)}</tbody></table></div>}
+  </section>;
+}
+
+function AgentAvatar({ agent, initials, className = '' }: { agent: Agent; initials: string; className?: string }) {
+  return agent.profile_photo ? <img src={agent.profile_photo} alt="" className={`h-16 w-16 rounded-2xl border-4 border-white object-cover shadow-sm dark:border-slate-900 ${className}`} /> : <span className={`grid h-16 w-16 place-items-center rounded-2xl border-4 border-white bg-slate-950 text-sm font-extrabold text-white shadow-sm dark:border-slate-900 dark:bg-white dark:text-slate-950 ${className}`}>{initials}</span>;
+}
+
+function StatusPill({ status }: { status: string }) {
+  const active = status.toLowerCase() === 'active';
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>{status}</span>;
 }
 
 function PageWorkspace({ category, link }: { category: Category; link: Link }) {
