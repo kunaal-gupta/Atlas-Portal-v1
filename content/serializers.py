@@ -1,5 +1,16 @@
 from rest_framework import serializers
-from .models import Event, NewsArticle, Resource, ResourceCategory
+from .models import Agent, Event, NewsArticle, Resource, ResourceCategory
+
+
+class AgentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agent
+        fields = (
+            "userid", "email", "full_name", "phone_number", "company",
+            "access_role", "professional_role", "status", "job_title",
+            "location", "license_number", "license_expiry", "profile_photo",
+            "last_active", "company_banner",
+        )
 
 
 class NewsArticleSerializer(serializers.ModelSerializer):
@@ -44,4 +55,3 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ("id", "title", "description", "start_at", "end_at", "location", "created_by", "views")
-
