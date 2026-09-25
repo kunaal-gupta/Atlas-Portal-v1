@@ -2,8 +2,16 @@ from django.utils import timezone
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Event, NewsArticle, ResourceCategory
-from .serializers import EventSerializer, NewsArticleSerializer, ResourceCategorySerializer
+from .models import Agent, Event, NewsArticle, ResourceCategory
+from .serializers import AgentSerializer, EventSerializer, NewsArticleSerializer, ResourceCategorySerializer
+
+
+class AgentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AgentSerializer
+    pagination_class = None
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("full_name", "email", "company", "professional_role", "job_title", "location")
+    queryset = Agent.objects.all()
 
 
 class NewsArticleViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,4 +48,3 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         page = self.paginate_queryset(events)
         serializer = self.get_serializer(page if page is not None else events, many=True)
         return self.get_paginated_response(serializer.data) if page is not None else Response(serializer.data)
-

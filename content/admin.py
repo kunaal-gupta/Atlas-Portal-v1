@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Event, NewsArticle, Resource, ResourceCategory
+from .models import Agent, Event, NewsArticle, Resource, ResourceCategory
+
+
+@admin.register(Agent)
+class AgentAdmin(admin.ModelAdmin):
+    list_display = ("full_name", "email", "professional_role", "location", "status", "last_active")
+    list_filter = ("status", "access_role", "professional_role", "location")
+    search_fields = ("full_name", "email", "company", "license_number")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(NewsArticle)

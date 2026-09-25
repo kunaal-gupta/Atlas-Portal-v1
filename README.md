@@ -27,5 +27,6 @@ The admin is available at `http://localhost:8000/admin/`; the browsable API is a
 - `GET /api/news/` and `/api/news/featured/`
 - `GET /api/categories/`
 - `GET /api/events/` and `/api/events/upcoming/`
+- `GET /api/agents/` (supports `?search=` across directory fields)
 
 Production configuration is environment-driven through `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, and `DJANGO_TIME_ZONE`. Uploaded files live under `media/`; static assets are served by WhiteNoise after `python manage.py collectstatic`.
