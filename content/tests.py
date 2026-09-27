@@ -52,3 +52,12 @@ class PortalApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual([agent["full_name"] for agent in response.json()], ["Alex Morgan"])
         self.assertNotIn("internal_notes", response.json()[0])
+
+    def test_seeded_agent_directory_data_is_available(self):
+        april = Agent.objects.get(email="aprilsturko@gmail.com")
+        self.assertEqual(april.full_name, "April Sturko")
+        self.assertEqual(april.company, "Century  21 Masters")
+        self.assertEqual(april.license_number, "")
+
+        builders = Agent.objects.filter(professional_role="Builder / Developer")
+        self.assertEqual(builders.count(), 5)
