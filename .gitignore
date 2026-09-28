@@ -7,9 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files
@@ -31,3 +31,8 @@ db.sqlite3
 media/
 staticfiles/
 .venv/
+
+# Test and tooling caches
+.pytest_cache/
+.mypy_cache/
+.coverage

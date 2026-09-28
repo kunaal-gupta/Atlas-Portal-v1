@@ -5,7 +5,7 @@ import {
   Command, Grid2X2, List, Mail, MapPin, Megaphone, Menu, Moon, Phone, Search,
   ShieldCheck, Sparkles, Sun, UserRound, X,
 } from 'lucide-react';
-import HomeDashboard from './components/Home/HomeDashboard';
+import HomeDashboard from './components/HomeDashboard';
 import type { Agent } from './types';
 
 type Link = { name: string; summary: string };
