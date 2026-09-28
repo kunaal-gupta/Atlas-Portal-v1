@@ -10,7 +10,9 @@ Atlas is an internal agent portal built as two independently managed application
 │   ├── manage.py
 │   └── requirements.txt
 ├── frontend/                # React and Vite client
-│   ├── src/components/      # Reusable interface components
+│   ├── src/pages/           # Route-level pages grouped by business area
+│   ├── src/components/      # Layout and reusable interface components
+│   ├── src/api/             # Typed backend API clients
 │   ├── src/App.tsx          # Main application shell and page composition
 │   ├── src/main.tsx         # Browser entry point
 │   └── package.json

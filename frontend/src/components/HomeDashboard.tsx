@@ -3,17 +3,10 @@ import {
   ArrowRight, BellRing, Building2, ChevronDown, ChevronLeft, ChevronRight,
   CircleDollarSign, Home, RefreshCw, TrendingUp,
 } from 'lucide-react';
+import { getNews } from '../api/news';
+import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
-type NewsItem = {
-  id: string;
-  title: string;
-  excerpt: string;
-  source: string;
-  date: string;
-  type: 'Internal' | 'Outside';
-  href: string;
-  accent: string;
-};
+type NewsItem = NewsCardItem & { accent: string };
 
 type SkySlopeNumbers = {
   activeListings: number;
@@ -21,14 +14,6 @@ type SkySlopeNumbers = {
   closedThisMonth: number;
   salesVolume: number;
   updatedAt?: string;
-};
-
-type ApiNewsItem = {
-  id: string | number;
-  title: string;
-  excerpt?: string;
-  department?: string;
-  published_at: string;
 };
 
 const fallbackNews: NewsItem[] = [
@@ -55,18 +40,15 @@ export default function HomeDashboard() {
   const [numbersLive, setNumbersLive] = useState(false);
 
   useEffect(() => {
-    fetch('/api/news/?limit=8')
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((payload) => {
-        const rows = Array.isArray(payload) ? payload : payload.results;
-        if (!Array.isArray(rows) || !rows.length) return;
-        const internal = (rows as ApiNewsItem[]).slice(0, 2).map((item, index): NewsItem => ({
-          id: `api-${item.id}`, title: item.title, excerpt: item.excerpt || 'Open this update for the complete story and important details.', source: item.department || 'Atlas team',
-          date: new Date(item.published_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), type: 'Internal',
-          href: '/resources/news-and-events/', accent: index ? 'from-rose-600 via-pink-700 to-violet-800' : 'from-indigo-700 via-violet-700 to-fuchsia-600',
-        }));
-        setNews([internal[0], fallbackNews[1], ...(internal[1] ? [internal[1]] : []), fallbackNews[3]]);
-      }).catch(() => undefined);
+    getNews().then((rows) => {
+      if (!rows.length) return;
+      const internal = rows.slice(0, 2).map((item, index): NewsItem => ({
+        id: `api-${item.id}`, title: item.title, excerpt: item.excerpt || 'Open this update for the complete story and important details.', source: item.department || 'Atlas team',
+        date: new Date(item.published_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), type: 'Internal',
+        href: '/resources/news-and-events/', accent: index ? 'from-rose-600 via-pink-700 to-violet-800' : 'from-indigo-700 via-violet-700 to-fuchsia-600',
+      }));
+      setNews([internal[0], fallbackNews[1], ...(internal[1] ? [internal[1]] : []), fallbackNews[3]]);
+    }).catch(() => undefined);
 
     fetch('/api/skyslope/numbers/')
       .then((response) => response.ok ? response.json() : Promise.reject())
@@ -90,7 +72,7 @@ export default function HomeDashboard() {
   return <div className="mt-7 space-y-7">
     <section aria-labelledby="news-heading">
       <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Latest updates</p><h2 id="news-heading" className="mt-1 text-xl font-extrabold">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
-      <div className="grid gap-4 md:grid-cols-3">{visibleNews.map((item, index) => <a href={item.href} key={`${item.id}-${index}`} className="group flex min-h-52 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"><span className="text-indigo-600 dark:text-indigo-400">{item.type} news</span><span className="text-slate-400">{item.date}</span></div><div><p className="mb-2 text-xs font-semibold text-slate-400">{item.source}</p><h3 className="text-lg font-extrabold leading-snug tracking-tight">{item.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-500">{item.excerpt}</p><span className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">Read update <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></span></div></a>)}</div>
+      <div className="grid gap-4 md:grid-cols-3">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
       <div className="mt-3 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} className={`h-1.5 rounded-full transition-all ${slide === index ? 'w-6 bg-indigo-600' : 'w-1.5 bg-slate-300 dark:bg-slate-700'}`} />)}</div>
     </section>
 
