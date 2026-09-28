@@ -96,6 +96,66 @@ class Resource(TimeStampedModel):
         return self.title
 
 
+class DocumentCategory(models.Model):
+    """A portal page or audience where a document can be displayed."""
+
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "Document categories"
+
+    def __str__(self):
+        return self.name
+
+
+class Document(models.Model):
+    title = models.CharField(max_length=255)
+    document_upload = models.FileField(upload_to="documents/", blank=True)
+    external_url = models.URLField(blank=True)
+    categories = models.ManyToManyField(
+        DocumentCategory,
+        related_name="documents",
+        help_text="Select every portal page where this document should be shown.",
+    )
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="updated_documents",
+    )
+
+    class Meta:
+        ordering = ["-updated_date", "title"]
+
+    def __str__(self):
+        return self.title
+
+
+class News(models.Model):
+    title = models.CharField(max_length=255)
+    url = models.URLField(blank=True)
+    summary = models.TextField(blank=True)
+    published_at = models.DateTimeField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    keywords = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Enter comma-separated keywords.",
+    )
+
+    class Meta:
+        ordering = ["-published_at"]
+        verbose_name_plural = "News"
+
+    def __str__(self):
+        return self.title
+
+
 class Event(TimeStampedModel):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)

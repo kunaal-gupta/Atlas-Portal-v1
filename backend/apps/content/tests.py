@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from .models import Agent, Event, NewsArticle, Resource, ResourceCategory
+from .models import Agent, Document, DocumentCategory, Event, News, NewsArticle, Resource, ResourceCategory
 
 
 class PortalApiTests(TestCase):
@@ -61,3 +61,47 @@ class PortalApiTests(TestCase):
 
         builders = Agent.objects.filter(professional_role="Builder / Developer")
         self.assertEqual(builders.count(), 5)
+
+
+class AdminContentModelTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_superuser(
+            username="admin", email="admin@example.com", password="password"
+        )
+        self.client.force_login(self.user)
+
+    def test_document_can_be_assigned_to_multiple_portal_pages(self):
+        market = DocumentCategory.objects.get(name="Market")
+        general = DocumentCategory.objects.get(name="General")
+        document = Document.objects.create(
+            title="Market guide", external_url="https://example.com/market-guide"
+        )
+        document.categories.set([market, general])
+
+        self.assertCountEqual(document.categories.values_list("name", flat=True), ["Market", "General"])
+
+    def test_document_admin_records_the_user_who_saved_it(self):
+        category = DocumentCategory.objects.get(name="Agent")
+        response = self.client.post(
+            reverse("admin:content_document_add"),
+            {
+                "title": "Agent handbook",
+                "external_url": "https://example.com/handbook",
+                "categories": [category.pk],
+                "_save": "Save",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Document.objects.get().updated_by, self.user)
+
+    def test_news_stores_admin_managed_metadata(self):
+        article = News.objects.create(
+            title="Office update",
+            url="https://example.com/news",
+            summary="The latest office news.",
+            published_at=timezone.now(),
+            keywords="office, update",
+        )
+
+        self.assertEqual(article.keywords, "office, update")
