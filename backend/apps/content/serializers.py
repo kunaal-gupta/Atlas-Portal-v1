@@ -10,6 +10,7 @@ class AgencySerializer(serializers.ModelSerializer):
             "email", "website", "company_phone",
         )
 
+    agency = AgencySerializer(read_only=True)
 
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
