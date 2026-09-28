@@ -54,7 +54,6 @@ class Agent(models.Model):
     license_expiry = models.DateField(blank=True, null=True)
     profile_photo = models.ImageField(upload_to="agents/profiles/", blank=True)
     internal_notes = models.CharField(max_length=500, blank=True)
-    last_active = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
