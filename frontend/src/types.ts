@@ -18,35 +18,13 @@ export interface Agent {
   company_banner: string;
 }
 
-export interface NewsArticle {
+export interface NewsItem {
   id: string | number;
   title: string;
-  excerpt?: string;
-  department?: string;
+  url: string;
+  summary: string;
   published_at: string;
-}
-
-export interface PortalEvent {
-  id: number;
-  title: string;
-  description: string;
-  start_time: string;
-  end_time: string;
-  location: string;
-}
-
-export interface Resource {
-  id: number;
-  title: string;
-  url?: string;
-  file?: string;
-}
-
-export interface ResourceCategory {
-  id: number;
-  name: string;
-  description?: string;
-  resources: Resource[];
+  keywords: string;
 }
 
 export interface PageDefinition {

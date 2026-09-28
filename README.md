@@ -76,7 +76,5 @@ Uploaded files are written to `backend/media/`, and collected static assets to `
 
 ## API endpoints
 
-- `GET /api/news/` and `GET /api/news/featured/`
-- `GET /api/categories/`
-- `GET /api/events/` and `GET /api/events/upcoming/`
+- `GET /api/news/` with optional `?search=` filtering
 - `GET /api/agents/` with optional `?search=` filtering

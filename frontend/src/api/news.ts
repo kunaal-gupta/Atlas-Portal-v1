@@ -1,6 +1,6 @@
-import type { NewsArticle } from '../types';
+import type { NewsItem } from '../types';
 import { getJson, resultsFrom } from './http';
 
-export async function getNews(limit = 8): Promise<NewsArticle[]> {
-  return resultsFrom(await getJson<NewsArticle[] | { results: NewsArticle[] }>(`/api/news/?limit=${limit}`));
+export async function getNews(limit = 8): Promise<NewsItem[]> {
+  return resultsFrom(await getJson<NewsItem[] | { results: NewsItem[] }>(`/api/news/?limit=${limit}`));
 }
