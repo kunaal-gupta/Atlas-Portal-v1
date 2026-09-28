@@ -78,3 +78,4 @@ Uploaded files are written to `backend/media/`, and collected static assets to `
 
 - `GET /api/news/` with optional `?search=` filtering
 - `GET /api/agents/` with optional `?search=` filtering
+- `GET /api/documents/` with optional `?category=` filtering

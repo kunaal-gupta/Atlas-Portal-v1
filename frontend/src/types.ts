@@ -32,6 +32,13 @@ export interface NewsItem {
   keywords: string;
 }
 
+export interface DocumentItem {
+  id: number;
+  title: string;
+  url: string;
+  updated_date: string;
+}
+
 export interface PageDefinition {
   category: string;
   title: string;

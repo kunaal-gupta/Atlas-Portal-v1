@@ -1,7 +1,8 @@
 from rest_framework.routers import DefaultRouter
-from .views import AgentViewSet, NewsViewSet
+from .views import AgentViewSet, DocumentViewSet, NewsViewSet
 
 router = DefaultRouter()
 router.register("agents", AgentViewSet, basename="agent")
 router.register("news", NewsViewSet, basename="news")
+router.register("documents", DocumentViewSet, basename="document")
 urlpatterns = router.urls
