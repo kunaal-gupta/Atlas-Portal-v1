@@ -5,8 +5,12 @@ from .models import Agent, Agency, News
 class AgencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Agency
-        fields = ("agency_id", "company_name", "company_logo", "email", "website", "company_phone")
+        fields = (
+            "agency_id", "company_name", "company_logo", "company_banner",
+            "email", "website", "company_phone",
+        )
 
+    agency = AgencySerializer(read_only=True)
 
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:

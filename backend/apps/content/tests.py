@@ -70,6 +70,22 @@ class AdminContentModelTests(TestCase):
         )
         self.client.force_login(self.user)
 
+    def test_agent_admin_groups_agencies_and_hides_last_active(self):
+        mozaic = Agency.objects.get(company_name="Mozaic Realty Group")
+        other = Agency.objects.create(company_name="Other Test Realty")
+        Agent.objects.create(email="mozaic-test@example.com", full_name="Mozaic Test", agency=mozaic)
+        Agent.objects.create(email="other-test@example.com", full_name="Other Test", agency=other)
+
+        response = self.client.get(
+            reverse("admin:content_agent_changelist"),
+            {"agency_group": "mozaic", "q": "Test"},
+        )
+        add_response = self.client.get(reverse("admin:content_agent_add"))
+
+        result_names = [agent.full_name for agent in response.context["cl"].result_list]
+        self.assertEqual(result_names, ["Mozaic Test"])
+        self.assertNotContains(add_response, "Last active")
+
     def test_document_can_be_assigned_to_multiple_portal_pages(self):
         market = DocumentCategory.objects.get(name="Market")
         general = DocumentCategory.objects.get(name="General")

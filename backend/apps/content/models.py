@@ -8,6 +8,7 @@ class Agency(models.Model):
     agency_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     company_name = models.CharField(max_length=255)
     company_logo = models.ImageField(upload_to="agencies/logos/", blank=True)
+    company_banner = models.ImageField(upload_to="agencies/banners/", blank=True)
     email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
     company_phone = models.CharField(max_length=50, blank=True)

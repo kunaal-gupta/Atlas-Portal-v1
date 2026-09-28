@@ -8,12 +8,31 @@ from .models import (
 )
 
 
+class AgencyGroupFilter(admin.SimpleListFilter):
+    title = "agency group"
+    parameter_name = "agency_group"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("mozaic", "Mozaic Realty Group"),
+            ("other", "Other agencies"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "mozaic":
+            return queryset.filter(agency__company_name__iexact="Mozaic Realty Group")
+        if self.value() == "other":
+            return queryset.exclude(agency__company_name__iexact="Mozaic Realty Group")
+        return queryset
+
+
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "email", "agency", "job_title", "location", "status", "last_active")
-    list_filter = ("status", "agency", "location")
+    list_display = ("full_name", "email", "agency", "job_title", "location", "status")
+    list_filter = (AgencyGroupFilter, "status", "agency", "location")
     search_fields = ("full_name", "email", "agency__company_name", "license_number")
     readonly_fields = ("created_at", "updated_at")
+    exclude = ("last_active",)
 
 
 @admin.register(Agency)

@@ -9,6 +9,7 @@ export interface Agent {
     agency_id: string;
     company_name: string;
     company_logo: string;
+    company_banner: string;
     email: string;
     website: string;
     company_phone: string;
