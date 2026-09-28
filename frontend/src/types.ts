@@ -5,9 +5,15 @@ export interface Agent {
   email: string;
   full_name: string;
   phone_number: string;
-  company: string;
-  access_role: string;
-  professional_role: string;
+  agency: {
+    agency_id: string;
+    company_name: string;
+    company_logo: string;
+    company_banner: string;
+    email: string;
+    website: string;
+    company_phone: string;
+  } | null;
   status: string;
   job_title: string;
   location: string;
@@ -15,38 +21,15 @@ export interface Agent {
   license_expiry: string | null;
   profile_photo: string;
   last_active: string | null;
-  company_banner: string;
 }
 
-export interface NewsArticle {
+export interface NewsItem {
   id: string | number;
   title: string;
-  excerpt?: string;
-  department?: string;
+  url: string;
+  summary: string;
   published_at: string;
-}
-
-export interface PortalEvent {
-  id: number;
-  title: string;
-  description: string;
-  start_time: string;
-  end_time: string;
-  location: string;
-}
-
-export interface Resource {
-  id: number;
-  title: string;
-  url?: string;
-  file?: string;
-}
-
-export interface ResourceCategory {
-  id: number;
-  name: string;
-  description?: string;
-  resources: Resource[];
+  keywords: string;
 }
 
 export interface PageDefinition {
