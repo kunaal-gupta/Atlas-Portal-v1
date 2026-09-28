@@ -10,9 +10,10 @@ class AgencySerializer(serializers.ModelSerializer):
             "email", "website", "company_phone",
         )
 
-    agency = AgencySerializer(read_only=True)
 
 class AgentSerializer(serializers.ModelSerializer):
+    agency = AgencySerializer(read_only=True)
+
     class Meta:
         model = Agent
         fields = (
@@ -21,8 +22,6 @@ class AgentSerializer(serializers.ModelSerializer):
             "location", "license_number", "license_expiry", "profile_photo",
             "last_active",
         )
-
-    agency = AgencySerializer(read_only=True)
 
 
 class NewsSerializer(serializers.ModelSerializer):
