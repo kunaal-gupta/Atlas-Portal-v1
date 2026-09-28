@@ -43,9 +43,9 @@ export default function HomeDashboard() {
     getNews().then((rows) => {
       if (!rows.length) return;
       const internal = rows.slice(0, 2).map((item, index): NewsItem => ({
-        id: `api-${item.id}`, title: item.title, excerpt: item.excerpt || 'Open this update for the complete story and important details.', source: item.department || 'Atlas team',
+        id: `api-${item.id}`, title: item.title, excerpt: item.summary || 'Open this update for the complete story and important details.', source: 'Atlas team',
         date: new Date(item.published_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), type: 'Internal',
-        href: '/resources/news-and-events/', accent: index ? 'from-rose-600 via-pink-700 to-violet-800' : 'from-indigo-700 via-violet-700 to-fuchsia-600',
+        href: item.url || '/resources/news-and-events/', accent: index ? 'from-rose-600 via-pink-700 to-violet-800' : 'from-indigo-700 via-violet-700 to-fuchsia-600',
       }));
       setNews([internal[0], fallbackNews[1], ...(internal[1] ? [internal[1]] : []), fallbackNews[3]]);
     }).catch(() => undefined);
