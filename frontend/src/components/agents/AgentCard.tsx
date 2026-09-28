@@ -16,8 +16,6 @@ export default function AgentCard({ agent, view = 'grid' }: { agent: Agent; view
     </div>
   </>;
 
-  if (view === 'list') return <article className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">{avatar}{details}</article>;
-
   return <article className="group overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
     <div className="flex h-20 items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50 p-2 dark:from-slate-800 dark:via-slate-900 dark:to-indigo-950">{banner ? <img src={banner} alt={`${agent.agency?.company_name || 'Agency'} banner`} className="h-full w-full object-contain" /> : agent.agency?.company_logo ? <img src={agent.agency.company_logo} alt={`${agent.agency.company_name} logo`} className="h-full w-full object-contain" /> : <Building2 className="h-7 w-7 text-indigo-300" />}</div>
     <div className="border-t border-slate-100 px-4 pb-4 dark:border-slate-800"><div className="-mt-7 mb-2">{avatar}</div>{details}</div>

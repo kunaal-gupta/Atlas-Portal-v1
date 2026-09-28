@@ -28,7 +28,7 @@ class AgencyGroupFilter(admin.SimpleListFilter):
 
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "email", "agency", "job_title", "location", "status")
+    list_display = ("full_name", "agency", "job_title", "location", "status")
     list_filter = (AgencyGroupFilter, "status", "agency", "location")
     search_fields = ("full_name", "email", "agency__company_name", "license_number")
     readonly_fields = ("created_at", "updated_at")
