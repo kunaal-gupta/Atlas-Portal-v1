@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Agent, Agency, News
+from .models import Agent, Agency, Document, News
 
 
 class AgencySerializer(serializers.ModelSerializer):
@@ -28,3 +28,16 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = ("id", "title", "url", "summary", "published_at", "keywords")
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
+        fields = ("id", "title", "url", "updated_date")
+
+    def get_url(self, document):
+        if document.document_upload:
+            return self.context["request"].build_absolute_uri(document.document_upload.url)
+        return document.external_url

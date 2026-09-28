@@ -62,6 +62,26 @@ class PortalApiTests(TestCase):
     def test_agent_status_is_limited_to_active_or_inactive(self):
         self.assertEqual(Agent.Status.values, ["Active", "Inactive"])
 
+    def test_documents_endpoint_only_returns_available_files_for_category(self):
+        market = DocumentCategory.objects.get(name="Market")
+        general = DocumentCategory.objects.get(name="General")
+        market_guide = Document.objects.create(
+            title="Market guide", external_url="https://example.com/market"
+        )
+        market_guide.categories.set([market])
+        general_guide = Document.objects.create(
+            title="General guide", external_url="https://example.com/general"
+        )
+        general_guide.categories.set([general])
+        unavailable = Document.objects.create(title="Unavailable")
+        unavailable.categories.set([market])
+
+        response = self.client.get(reverse("document-list"), {"category": "Market"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([document["title"] for document in response.json()], ["Market guide"])
+        self.assertEqual(response.json()[0]["url"], "https://example.com/market")
+
 
 class AdminContentModelTests(TestCase):
     def setUp(self):
