@@ -4,7 +4,7 @@ import type { Agent } from '../../types';
 const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 const role = (agent: Agent) => agent.job_title || 'Agent';
 
-export default function AgentCard({ agent }: { agent: Agent }) {
+export default function AgentCard({ agent, view = 'grid' }: { agent: Agent; view?: 'grid' | 'list' }) {
   const active = agent.status.toLowerCase() === 'active';
   const photo = agent.profile_photo;
   const banner = agent.agency?.company_banner;

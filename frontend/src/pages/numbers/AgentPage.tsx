@@ -6,6 +6,8 @@ import EmptyState from '../../components/shared/EmptyState';
 import PageHeader from '../../components/shared/PageHeader';
 import type { Agent } from '../../types';
 
+const MOZAIC = 'mozaic realty group';
+
 export default function AgentPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [query, setQuery] = useState('');
