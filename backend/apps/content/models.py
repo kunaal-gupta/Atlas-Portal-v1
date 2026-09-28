@@ -1,13 +1,28 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 
 
-class TimeStampedModel(models.Model):
+class Agency(models.Model):
+    agency_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company_name = models.CharField(max_length=255)
+    company_logo = models.ImageField(upload_to="agencies/logos/", blank=True)
+    company_banner = models.ImageField(upload_to="agencies/banners/", blank=True)
+    email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+    company_phone = models.CharField(max_length=50, blank=True)
+    internal_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        abstract = True
+        db_table = "agencies"
+        ordering = ["company_name"]
+        verbose_name_plural = "Agencies"
+
+    def __str__(self):
+        return self.company_name
 
 
 class Agent(models.Model):
@@ -18,24 +33,31 @@ class Agent(models.Model):
     granting portal access.
     """
 
-    userid = models.CharField(max_length=255, primary_key=True)
+    class Status(models.TextChoices):
+        ACTIVE = "Active", "Active"
+        INACTIVE = "Inactive", "Inactive"
+
+    userid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=50, blank=True)
-    company = models.CharField(max_length=255, blank=True)
-    access_role = models.CharField(max_length=100)
-    professional_role = models.CharField(max_length=150, blank=True)
-    status = models.CharField(max_length=50, default="Active", db_index=True)
+    agency = models.ForeignKey(
+        Agency,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="agents",
+    )
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     job_title = models.CharField(max_length=150, blank=True)
     location = models.CharField(max_length=255, blank=True)
     license_number = models.CharField(max_length=100, blank=True)
     license_expiry = models.DateField(blank=True, null=True)
-    profile_photo = models.URLField(blank=True)
+    profile_photo = models.ImageField(upload_to="agents/profiles/", blank=True)
     internal_notes = models.CharField(max_length=500, blank=True)
     last_active = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    company_banner = models.URLField(blank=True)
 
     class Meta:
         ordering = ["full_name"]
@@ -43,57 +65,6 @@ class Agent(models.Model):
 
     def __str__(self):
         return self.full_name
-
-
-class NewsArticle(TimeStampedModel):
-    title = models.CharField(max_length=255)
-    excerpt = models.TextField(blank=True)
-    content = models.TextField()
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="portal_articles")
-    department = models.CharField(max_length=100, db_index=True)
-    image = models.ImageField(upload_to="news/", blank=True)
-    image_url = models.URLField(blank=True)
-    published_at = models.DateTimeField(db_index=True)
-    views = models.PositiveIntegerField(default=0)
-    is_featured = models.BooleanField(default=False, db_index=True)
-    is_published = models.BooleanField(default=True, db_index=True)
-
-    class Meta:
-        ordering = ["-published_at"]
-
-    def __str__(self):
-        return self.title
-
-
-class ResourceCategory(TimeStampedModel):
-    name = models.CharField(max_length=100, unique=True)
-    icon_name = models.CharField(max_length=50, default="FileText")
-    color = models.CharField(max_length=100, default="from-slate-600 to-slate-700")
-    order = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        ordering = ["order", "name"]
-        verbose_name_plural = "Resource categories"
-
-    def __str__(self):
-        return self.name
-
-
-class Resource(TimeStampedModel):
-    category = models.ForeignKey(ResourceCategory, on_delete=models.CASCADE, related_name="resources")
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    external_url = models.URLField(blank=True)
-    file = models.FileField(upload_to="resources/", blank=True)
-    order = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        ordering = ["order", "title"]
-
-    def __str__(self):
-        return self.title
 
 
 class DocumentCategory(models.Model):
@@ -154,25 +125,3 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class Event(TimeStampedModel):
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    start_at = models.DateTimeField(db_index=True)
-    end_at = models.DateTimeField()
-    location = models.CharField(max_length=255, blank=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="portal_events")
-    is_published = models.BooleanField(default=True, db_index=True)
-    views = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["start_at"]
-
-    def __str__(self):
-        return self.title
-
-    def clean(self):
-        from django.core.exceptions import ValidationError
-        if self.end_at <= self.start_at:
-            raise ValidationError({"end_at": "End time must be after start time."})
