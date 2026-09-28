@@ -7,8 +7,8 @@ class AgentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AgentSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("full_name", "email", "company", "professional_role", "job_title", "location")
-    queryset = Agent.objects.all()
+    search_fields = ("full_name", "email", "agency__company_name", "job_title", "location")
+    queryset = Agent.objects.select_related("agency")
 
 
 class NewsViewSet(viewsets.ReadOnlyModelViewSet):

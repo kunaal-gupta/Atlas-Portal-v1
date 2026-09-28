@@ -2,7 +2,7 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 import type { Agent } from '../../types';
 
 const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
-const role = (agent: Agent) => agent.job_title || agent.professional_role || agent.access_role;
+const role = (agent: Agent) => agent.job_title || agent.agency?.company_name || 'Agent';
 
 export default function AgentCard({ agent }: { agent: Agent }) {
   const active = agent.status.toLowerCase() === 'active';

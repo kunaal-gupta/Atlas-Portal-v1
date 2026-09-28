@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from .models import Agent, Document, DocumentCategory, News
+from .models import Agent, Agency, Document, DocumentCategory, News
 
 
 class PortalApiTests(TestCase):
@@ -26,31 +26,41 @@ class PortalApiTests(TestCase):
         self.assertEqual(response.json()["results"][0]["summary"], "News")
 
     def test_agent_directory_is_searchable_and_hides_internal_notes(self):
+        agency = Agency.objects.create(company_name="Example Realty")
         Agent.objects.create(
-            userid="agent-1",
             email="alex@example.com",
             full_name="Alex Morgan",
-            access_role="Agent",
-            professional_role="Sales Representative",
+            agency=agency,
+            job_title="Sales Representative",
             location="Toronto",
             internal_notes="Private office note",
         )
-        Agent.objects.create(userid="agent-2", email="sam@example.com", full_name="Sam Lee", access_role="Agent", location="Ottawa")
+        Agent.objects.create(email="sam@example.com", full_name="Sam Lee", location="Ottawa")
 
         response = self.client.get(reverse("agent-list"), {"search": "Toronto"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual([agent["full_name"] for agent in response.json()], ["Alex Morgan"])
+        self.assertEqual(response.json()[0]["agency"]["company_name"], "Example Realty")
         self.assertNotIn("internal_notes", response.json()[0])
 
     def test_seeded_agent_directory_data_is_available(self):
         april = Agent.objects.get(email="aprilsturko@gmail.com")
         self.assertEqual(april.full_name, "April Sturko")
-        self.assertEqual(april.company, "Century  21 Masters")
+        self.assertEqual(april.agency.company_name, "Century  21 Masters")
         self.assertEqual(april.license_number, "")
 
-        builders = Agent.objects.filter(professional_role="Builder / Developer")
+        builders = Agent.objects.filter(job_title__in=[
+            "Vice President - Sales",
+            "Online Sales Manager",
+            "Senior Manager, Data Analytics",
+            "Vice President - Finance",
+            "Sales Manager",
+        ])
         self.assertEqual(builders.count(), 5)
+
+    def test_agent_status_is_limited_to_active_or_inactive(self):
+        self.assertEqual(Agent.Status.values, ["Active", "Inactive"])
 
 
 class AdminContentModelTests(TestCase):

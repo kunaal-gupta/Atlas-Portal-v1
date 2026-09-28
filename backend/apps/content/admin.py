@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     Agent,
+    Agency,
     Document,
     DocumentCategory,
     News,
@@ -9,9 +10,16 @@ from .models import (
 
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "email", "professional_role", "location", "status", "last_active")
-    list_filter = ("status", "access_role", "professional_role", "location")
-    search_fields = ("full_name", "email", "company", "license_number")
+    list_display = ("full_name", "email", "agency", "job_title", "location", "status", "last_active")
+    list_filter = ("status", "agency", "location")
+    search_fields = ("full_name", "email", "agency__company_name", "license_number")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(Agency)
+class AgencyAdmin(admin.ModelAdmin):
+    list_display = ("company_name", "email", "company_phone", "website", "updated_at")
+    search_fields = ("company_name", "email", "company_phone")
     readonly_fields = ("created_at", "updated_at")
 
 

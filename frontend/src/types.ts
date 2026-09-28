@@ -5,9 +5,14 @@ export interface Agent {
   email: string;
   full_name: string;
   phone_number: string;
-  company: string;
-  access_role: string;
-  professional_role: string;
+  agency: {
+    agency_id: string;
+    company_name: string;
+    company_logo: string;
+    email: string;
+    website: string;
+    company_phone: string;
+  } | null;
   status: string;
   job_title: string;
   location: string;
@@ -15,7 +20,6 @@ export interface Agent {
   license_expiry: string | null;
   profile_photo: string;
   last_active: string | null;
-  company_banner: string;
 }
 
 export interface NewsItem {

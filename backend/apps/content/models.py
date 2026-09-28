@@ -1,5 +1,27 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
+
+
+class Agency(models.Model):
+    agency_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company_name = models.CharField(max_length=255)
+    company_logo = models.ImageField(upload_to="agencies/logos/", blank=True)
+    email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+    company_phone = models.CharField(max_length=50, blank=True)
+    internal_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "agencies"
+        ordering = ["company_name"]
+        verbose_name_plural = "Agencies"
+
+    def __str__(self):
+        return self.company_name
 
 
 class Agent(models.Model):
@@ -10,24 +32,31 @@ class Agent(models.Model):
     granting portal access.
     """
 
-    userid = models.CharField(max_length=255, primary_key=True)
+    class Status(models.TextChoices):
+        ACTIVE = "Active", "Active"
+        INACTIVE = "Inactive", "Inactive"
+
+    userid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=50, blank=True)
-    company = models.CharField(max_length=255, blank=True)
-    access_role = models.CharField(max_length=100)
-    professional_role = models.CharField(max_length=150, blank=True)
-    status = models.CharField(max_length=50, default="Active", db_index=True)
+    agency = models.ForeignKey(
+        Agency,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="agents",
+    )
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     job_title = models.CharField(max_length=150, blank=True)
     location = models.CharField(max_length=255, blank=True)
     license_number = models.CharField(max_length=100, blank=True)
     license_expiry = models.DateField(blank=True, null=True)
-    profile_photo = models.URLField(blank=True)
+    profile_photo = models.ImageField(upload_to="agents/profiles/", blank=True)
     internal_notes = models.CharField(max_length=500, blank=True)
     last_active = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    company_banner = models.URLField(blank=True)
 
     class Meta:
         ordering = ["full_name"]
