@@ -36,6 +36,7 @@ export interface DocumentItem {
   id: number;
   title: string;
   url: string;
+  folder_path: string[];
   updated_date: string;
 }
 
