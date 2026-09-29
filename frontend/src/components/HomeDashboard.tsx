@@ -61,7 +61,7 @@ export default function HomeDashboard() {
       .catch(() => undefined);
   }, []);
 
-  const visibleNews = [0, 1].map((offset) => news[(slide + offset) % news.length]);
+  const visibleNews = [0, 1, 2, 3].map((offset) => news[(slide + offset) % news.length]);
   const metrics = [
     { label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Live inventory' },
     { label: 'Pending', value: numbers.pendingTransactions.toLocaleString(), icon: TrendingUp, note: 'Transactions' },
@@ -70,10 +70,9 @@ export default function HomeDashboard() {
   ];
 
   return <div className="mt-5 space-y-7">
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,.75fr)]">
     <section aria-labelledby="news-heading" className="min-w-0">
       <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Latest updates</p><h2 id="news-heading" className="mt-1 text-xl font-extrabold">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
-      <div className="grid gap-4 md:grid-cols-2">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
       <div className="mt-3 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} className={`h-1.5 rounded-full transition-all ${slide === index ? 'w-6 bg-indigo-600' : 'w-1.5 bg-slate-300 dark:bg-slate-700'}`} />)}</div>
     </section>
 
@@ -82,7 +81,7 @@ export default function HomeDashboard() {
         <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950"><TrendingUp className="h-4 w-4" /></span><div><h2 id="numbers-heading" className="font-extrabold">The numbers</h2><p className="text-xs text-slate-500">Company performance at a glance</p></div></div>
         <span className="flex items-center gap-2 text-xs font-semibold text-slate-400"><span className={`h-2 w-2 rounded-full ${numbersLive ? 'bg-emerald-500' : 'bg-amber-400'}`} />{numbersLive ? 'Live from SkySlope' : 'SkySlope preview data'} <RefreshCw className="h-3.5 w-3.5" /></span>
       </div>
-      <div className="grid grid-cols-2">{metrics.map(({ label, value, icon: Icon, note }, index) => <div key={label} className={`p-4 ${index % 2 ? 'border-l' : ''} ${index > 1 ? 'border-t' : ''} border-slate-100 dark:border-slate-800`}><div className="flex items-start justify-between gap-2"><div><p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-xl font-black tracking-tight">{value}</p><p className="mt-0.5 text-[11px] text-slate-500">{note}</p></div><Icon className="h-4 w-4 shrink-0 text-slate-400" /></div></div>)}</div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ label, value, icon: Icon, note }, index) => <div key={label} className={`p-4 ${index ? 'border-t sm:border-l sm:border-t-0' : ''} ${index === 2 ? 'sm:border-l-0 sm:border-t xl:border-l xl:border-t-0' : ''} border-slate-100 dark:border-slate-800`}><div className="flex items-start justify-between gap-2"><div><p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-xl font-black tracking-tight">{value}</p><p className="mt-0.5 text-[11px] text-slate-500">{note}</p></div><Icon className="h-4 w-4 shrink-0 text-slate-400" /></div></div>)}</div>
     </section>
     </div>
 
