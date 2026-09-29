@@ -1,6 +1,6 @@
 import { Download, FileText } from 'lucide-react';
 
-function getFileType(href: string) {
+export function getFileType(href: string) {
   try {
     const fileName = decodeURIComponent(new URL(href, window.location.origin).pathname).split('/').pop() ?? '';
     const extension = fileName.includes('.') ? fileName.split('.').pop() : '';
@@ -10,7 +10,7 @@ function getFileType(href: string) {
   }
 }
 
-function formatModifiedDate(updatedDate: string) {
+export function formatModifiedDate(updatedDate: string) {
   const date = new Date(updatedDate);
   if (Number.isNaN(date.getTime())) return 'Modified date unavailable';
   return `Modified ${new Intl.DateTimeFormat(undefined, {

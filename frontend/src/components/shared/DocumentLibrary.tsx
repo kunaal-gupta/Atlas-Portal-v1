@@ -1,8 +1,8 @@
-import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Folder, LayoutGrid, List, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown, Download, FileText, Folder, LayoutGrid, List, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { DocumentItem } from '../../types';
 import EmptyState from './EmptyState';
-import ResourceCard from './ResourceCard';
+import ResourceCard, { formatModifiedDate, getFileType } from './ResourceCard';
 
 interface FolderNode { files: DocumentItem[]; folders: Map<string, FolderNode> }
 type SortOption = 'title-asc' | 'title-desc' | 'newest' | 'oldest';
@@ -29,6 +29,10 @@ function FileGrid({ files, view }: { files: DocumentItem[]; view: 'grid' | 'list
   return <div className={`mt-3 grid gap-3 ${view === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
     {files.map((document) => <ResourceCard key={document.id} title={document.title} href={document.url} updatedDate={document.updated_date} />)}
   </div>;
+}
+
+function FileTable({ files }: { files: DocumentItem[] }) {
+  return <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-[.12em] text-slate-500 dark:border-slate-800 dark:bg-slate-950/50"><tr><th className="px-5 py-3">Name</th><th className="px-4 py-3">Folder / directory</th><th className="px-4 py-3">File type</th><th className="px-4 py-3">Last modified</th><th className="px-5 py-3 text-right">Open</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{files.map((document) => <tr key={document.id} className="transition hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20"><td className="px-5 py-3"><a href={document.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 font-bold hover:text-indigo-600"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950"><FileText className="h-4 w-4" /></span><span className="truncate">{document.title}</span></a></td><td className="px-4 py-3 text-xs text-slate-500">{document.folder_path.length ? document.folder_path.join(' / ') : 'Top level'}</td><td className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300">{getFileType(document.url)}</td><td className="px-4 py-3 text-xs text-slate-500">{formatModifiedDate(document.updated_date).replace(/^Modified /, '')}</td><td className="px-5 py-3 text-right"><a href={document.url} target="_blank" rel="noreferrer" aria-label={`Open ${document.title}`} className="inline-flex rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800"><Download className="h-4 w-4" /></a></td></tr>)}</tbody></table></div></div>;
 }
 
 function FolderSection({ name, node, path, collapsed, toggle, view, filtering }: { name: string; node: FolderNode; path: string; collapsed: Set<string>; toggle: (path: string) => void; view: 'grid' | 'list'; filtering: boolean }) {
@@ -67,11 +71,11 @@ export default function DocumentLibrary({ documents }: { documents: DocumentItem
     <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <label className="relative min-w-56 flex-1"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Filter files and folders" className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm dark:border-slate-700 dark:bg-slate-950" /></label>
       <select value={sort} onChange={(event) => setSort(event.target.value as SortOption)} aria-label="Sort documents" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="title-asc">Name A–Z</option><option value="title-desc">Name Z–A</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
-      <button type="button" onClick={() => setCollapsed(new Set())} title="Expand all folders" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:text-indigo-600 dark:border-slate-700"><ChevronsUpDown className="h-4 w-4" /></button>
-      <button type="button" onClick={() => setCollapsed(new Set(folderPaths))} title="Collapse all folders" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:text-indigo-600 dark:border-slate-700"><ChevronsDownUp className="h-4 w-4" /></button>
+      {view === 'grid' && <><button type="button" onClick={() => setCollapsed(new Set())} title="Expand all folders" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:text-indigo-600 dark:border-slate-700"><ChevronsUpDown className="h-4 w-4" /></button>
+      <button type="button" onClick={() => setCollapsed(new Set(folderPaths))} title="Collapse all folders" className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:text-indigo-600 dark:border-slate-700"><ChevronsDownUp className="h-4 w-4" /></button></>}
       <div className="flex rounded-lg border border-slate-200 p-1 dark:border-slate-700"><button type="button" onClick={() => setView('grid')} aria-label="Grid view" aria-pressed={view === 'grid'} className={`rounded-md p-1.5 ${view === 'grid' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}><LayoutGrid className="h-4 w-4" /></button><button type="button" onClick={() => setView('list')} aria-label="List view" aria-pressed={view === 'list'} className={`rounded-md p-1.5 ${view === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}><List className="h-4 w-4" /></button></div>
       <span className="w-full text-xs text-slate-500 sm:w-auto">{visible.length} of {documents.length} files</span>
     </div>
-    {!visible.length ? <div className="mt-5"><EmptyState title="No matching files" message="Try a different filter." /></div> : <><FileGrid files={tree.files} view={view} />{[...tree.folders.entries()].map(([folderName, node]) => <FolderSection key={folderName} name={folderName} node={node} path={folderName} collapsed={collapsed} toggle={toggle} view={view} filtering={Boolean(query.trim())} />)}</>}
+    {!visible.length ? <div className="mt-5"><EmptyState title="No matching files" message="Try a different filter." /></div> : view === 'list' ? <FileTable files={visible} /> : <><FileGrid files={tree.files} view={view} />{[...tree.folders.entries()].map(([folderName, node]) => <FolderSection key={folderName} name={folderName} node={node} path={folderName} collapsed={collapsed} toggle={toggle} view={view} filtering={Boolean(query.trim())} />)}</>}
   </div>;
 }
