@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:content_document_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; Import folder
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" enctype="multipart/form-data" id="folder-import-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+          {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-row">
+        <label class="required" for="id_files">Folders:</label>
+        <div id="folder-inputs">
+          <p><input id="id_files" name="files" type="file" webkitdirectory directory multiple required></p>
+        </div>
+        <button type="button" id="add-folder">Choose another folder</button>
+        <div class="help">Choose one or more local folders. Their nested folder structures will be preserved.</div>
+        <div id="relative-paths"></div>
+      </div>
+    </fieldset>
+    <div class="submit-row"><input type="submit" value="Import folder" class="default"></div>
+  </form>
+</div>
+<script>
+  const folderInputs = document.getElementById('folder-inputs');
+  const addFolderButton = document.getElementById('add-folder');
+
+  function updateRelativePaths() {
+    const container = document.getElementById('relative-paths');
+    container.replaceChildren();
+    folderInputs.querySelectorAll('input[type="file"]').forEach(function (folderInput) {
+      Array.from(folderInput.files).forEach(function (file) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'relative_paths';
+        input.value = file.webkitRelativePath || file.name;
+        container.appendChild(input);
+      });
+    });
+  }
+
+  folderInputs.addEventListener('change', updateRelativePaths);
+  addFolderButton.addEventListener('click', function () {
+    const row = document.createElement('p');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'files';
+    input.multiple = true;
+    input.setAttribute('webkitdirectory', '');
+    input.setAttribute('directory', '');
+    row.appendChild(input);
+    folderInputs.appendChild(row);
+    input.click();
+  });
+</script>
+{% endblock %}

@@ -30,4 +30,4 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
         category = self.request.query_params.get("category")
         if category:
             queryset = queryset.filter(categories__name__iexact=category)
-        return queryset.distinct()
+        return queryset.select_related("folder", "folder__parent").distinct()
