@@ -29,7 +29,16 @@
           <p><input id="id_files" name="files" type="file" webkitdirectory directory multiple required></p>
         </div>
         <button type="button" id="add-folder">Choose another folder</button>
-        <div class="help">Choose one or more local folders. Their nested folder structures will be preserved.</div>
+        <div class="help">Choose folders one at a time, or select several in your file manager and drop them together below.</div>
+        <div id="folder-drop-zone" style="margin-top: 12px; padding: 24px; border: 2px dashed var(--border-color); border-radius: 4px; text-align: center;">
+          <strong>Drop folders here</strong>
+          <div class="help" id="drop-status">Nested and empty folders will be preserved.</div>
+        </div>
+        <input id="dropped-files" name="files" type="file" multiple hidden>
+        <div id="import-preview" style="display: none; margin-top: 12px; max-height: 320px; overflow: auto; padding: 12px; background: var(--darkened-bg); border-radius: 4px;">
+          <strong>Import preview</strong>
+          <pre id="preview-tree" style="margin-bottom: 0; white-space: pre-wrap;"></pre>
+        </div>
         <div id="relative-paths"></div>
       </div>
     </fieldset>
@@ -39,19 +48,79 @@
 <script>
   const folderInputs = document.getElementById('folder-inputs');
   const addFolderButton = document.getElementById('add-folder');
+  const dropZone = document.getElementById('folder-drop-zone');
+  const dropStatus = document.getElementById('drop-status');
+  const droppedInput = document.getElementById('dropped-files');
+  const preview = document.getElementById('import-preview');
+  const previewTree = document.getElementById('preview-tree');
+  let droppedData = new DataTransfer();
+  let droppedPaths = [];
+  let droppedFolders = [];
+
+  function addHiddenValue(container, name, value) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    container.appendChild(input);
+  }
 
   function updateRelativePaths() {
     const container = document.getElementById('relative-paths');
     container.replaceChildren();
     folderInputs.querySelectorAll('input[type="file"]').forEach(function (folderInput) {
       Array.from(folderInput.files).forEach(function (file) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'relative_paths';
-        input.value = file.webkitRelativePath || file.name;
-        container.appendChild(input);
+        addHiddenValue(container, 'relative_paths', file.webkitRelativePath || file.name);
       });
     });
+    droppedPaths.forEach(function (path) { addHiddenValue(container, 'relative_paths', path); });
+    droppedFolders.forEach(function (path) { addHiddenValue(container, 'folder_paths', path); });
+  }
+
+  function readEntries(reader) {
+    return new Promise(function (resolve, reject) {
+      const entries = [];
+      function nextBatch() {
+        reader.readEntries(function (batch) {
+          if (!batch.length) return resolve(entries);
+          entries.push(...batch);
+          nextBatch();
+        }, reject);
+      }
+      nextBatch();
+    });
+  }
+
+  function readFile(entry) {
+    return new Promise(function (resolve, reject) { entry.file(resolve, reject); });
+  }
+
+  async function collectEntry(entry, parentPath) {
+    const path = parentPath ? parentPath + '/' + entry.name : entry.name;
+    if (entry.isFile) {
+      const file = await readFile(entry);
+      droppedData.items.add(file);
+      droppedPaths.push(path);
+      return;
+    }
+    droppedFolders.push(path);
+    const children = await readEntries(entry.createReader());
+    children.sort(function (left, right) { return left.name.localeCompare(right.name); });
+    for (const child of children) await collectEntry(child, path);
+  }
+
+  function showPreview() {
+    const rows = [
+      ...droppedFolders.map(function (path) { return { path, icon: '📁' }; }),
+      ...droppedPaths.map(function (path) { return { path, icon: '📄' }; }),
+    ].sort(function (left, right) { return left.path.localeCompare(right.path); });
+    const visibleRows = rows.slice(0, 250).map(function (row) {
+      const depth = row.path.split('/').length - 1;
+      return '  '.repeat(depth) + row.icon + ' ' + row.path.split('/').pop();
+    });
+    if (rows.length > visibleRows.length) visibleRows.push('…and ' + (rows.length - visibleRows.length) + ' more items');
+    previewTree.textContent = visibleRows.join('\n');
+    preview.style.display = 'block';
   }
 
   folderInputs.addEventListener('change', updateRelativePaths);
@@ -66,6 +135,39 @@
     row.appendChild(input);
     folderInputs.appendChild(row);
     input.click();
+  });
+
+  ['dragenter', 'dragover'].forEach(function (eventName) {
+    dropZone.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      dropZone.style.borderColor = 'var(--primary)';
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (eventName) {
+    dropZone.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      dropZone.style.borderColor = 'var(--border-color)';
+    });
+  });
+  dropZone.addEventListener('drop', async function (event) {
+    const entries = Array.from(event.dataTransfer.items)
+      .map(function (item) { return item.webkitGetAsEntry && item.webkitGetAsEntry(); })
+      .filter(Boolean);
+    if (!entries.length) {
+      dropStatus.textContent = 'These folders could not be read. Please use a Chromium-based browser or the picker above.';
+      return;
+    }
+    droppedData = new DataTransfer();
+    droppedPaths = [];
+    droppedFolders = [];
+    dropStatus.textContent = 'Reading folder structure…';
+    entries.sort(function (left, right) { return left.name.localeCompare(right.name); });
+    for (const entry of entries) await collectEntry(entry, '');
+    droppedInput.files = droppedData.files;
+    document.getElementById('id_files').required = false;
+    updateRelativePaths();
+    showPreview();
+    dropStatus.textContent = droppedPaths.length + ' files in ' + droppedFolders.length + ' folders ready to import.';
   });
 </script>
 {% endblock %}

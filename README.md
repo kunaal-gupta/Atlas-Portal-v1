@@ -78,7 +78,7 @@ Uploaded files are written to `backend/media/`, and collected static assets to `
 
 Administrators can organize documents into folders (including nested folders) from **Content management → Document folders**. A document can be placed in a folder when it is added or edited.
 
-To upload existing directory trees in one step, open **Content management → Documents**, choose **Import folder**, select the portal pages/categories, and choose a local folder. Use **Choose another folder** to add as many folder trees as needed before importing. The importer creates the nested folders and adds every contained file. Browsers do not report empty directories, so empty folders should be created separately under **Document folders**.
+To upload existing directory trees in one step, open **Content management → Documents**, choose **Import folder**, and select the portal pages/categories. You can use the folder picker or drag several folders together onto the drop zone. A preview shows the complete tree before import, and drag-and-drop preserves nested and empty directories as well as their files.
 
 ## API endpoints
 

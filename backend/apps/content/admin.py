@@ -102,7 +102,8 @@ class DocumentAdmin(admin.ModelAdmin):
         if request.method == "POST" and form.is_valid():
             files = request.FILES.getlist("files")
             relative_paths = request.POST.getlist("relative_paths")
-            if not files:
+            folder_paths = request.POST.getlist("folder_paths")
+            if not files and not folder_paths:
                 form.add_error(None, "Choose a folder containing at least one file.")
             elif len(files) != len(relative_paths):
                 form.add_error(None, "The selected folder could not be read. Please select it again.")
@@ -111,6 +112,7 @@ class DocumentAdmin(admin.ModelAdmin):
                     imported = self._import_files(
                         files,
                         relative_paths,
+                        folder_paths,
                         form.cleaned_data["parent"],
                         form.cleaned_data["categories"],
                         request.user,
@@ -127,21 +129,34 @@ class DocumentAdmin(admin.ModelAdmin):
         return render(request, "admin/content/document/import_folder.html", context)
 
     @staticmethod
-    def _import_files(files, relative_paths, parent, categories, user):
+    def _import_files(files, relative_paths, folder_paths, parent, categories, user):
         folder_cache = {}
         imported = 0
-        for uploaded_file, raw_path in zip(files, relative_paths):
-            relative_path = PurePosixPath(raw_path.replace("\\", "/"))
-            if relative_path.is_absolute() or ".." in relative_path.parts:
-                continue
+
+        def get_folder(parts):
             current = parent
-            for folder_name in relative_path.parts[:-1]:
+            for folder_name in parts:
                 key = (current.pk if current else None, folder_name)
                 folder = folder_cache.get(key)
                 if folder is None:
                     folder, _ = DocumentFolder.objects.get_or_create(parent=current, name=folder_name)
                     folder_cache[key] = folder
                 current = folder
+            return current
+
+        # Directory drag-and-drop can report empty directories as well as files.
+        # Create the directory manifest first so the complete tree is retained.
+        for raw_path in folder_paths:
+            folder_path = PurePosixPath(raw_path.replace("\\", "/"))
+            if folder_path.is_absolute() or ".." in folder_path.parts:
+                continue
+            get_folder(folder_path.parts)
+
+        for uploaded_file, raw_path in zip(files, relative_paths):
+            relative_path = PurePosixPath(raw_path.replace("\\", "/"))
+            if relative_path.is_absolute() or ".." in relative_path.parts:
+                continue
+            current = get_folder(relative_path.parts[:-1])
             document = Document.objects.create(
                 title=relative_path.stem,
                 document_upload=uploaded_file,
