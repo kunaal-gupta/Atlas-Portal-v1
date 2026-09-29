@@ -30,7 +30,7 @@ function FolderSection({ name, node, depth }: { name: string; node: FolderNode; 
       <span className="text-xs text-slate-400">{node.files.length + node.folders.size} items</span>
     </div>
     {node.files.length > 0 && <div className="mt-3 grid gap-3 lg:grid-cols-3">
-      {node.files.map((document) => <ResourceCard key={document.id} title={document.title} href={document.url} />)}
+      {node.files.map((document) => <ResourceCard key={document.id} title={document.title} href={document.url} updatedDate={document.updated_date} />)}
     </div>}
     {[...node.folders.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([folderName, child]) =>
       <FolderSection key={folderName} name={folderName} node={child} depth={depth + 1} />
@@ -42,7 +42,7 @@ export default function DocumentLibrary({ documents }: { documents: DocumentItem
   const root = buildTree(documents);
   return <div>
     {root.files.length > 0 && <div className="mt-5 grid gap-3 lg:grid-cols-3">
-      {root.files.map((document) => <ResourceCard key={document.id} title={document.title} href={document.url} />)}
+      {root.files.map((document) => <ResourceCard key={document.id} title={document.title} href={document.url} updatedDate={document.updated_date} />)}
     </div>}
     {[...root.folders.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([folderName, node]) =>
       <FolderSection key={folderName} name={folderName} node={node} depth={0} />

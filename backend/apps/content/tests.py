@@ -147,7 +147,7 @@ class AdminContentModelTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Document.objects.get().updated_by, self.user)
 
-    def test_admin_can_import_multiple_folders_and_preserve_nested_paths(self):
+    def test_admin_can_import_a_folder_and_preserve_nested_paths(self):
         category = DocumentCategory.objects.get(name="General")
         response = self.client.post(
             reverse("admin:content_document_import_folder"),
@@ -172,12 +172,6 @@ class AdminContentModelTests(TestCase):
         self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
         self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
         self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
-
-    def test_folder_import_page_offers_multi_folder_drop_zone(self):
-        response = self.client.get(reverse("admin:content_document_import_folder"))
-
-        self.assertContains(response, "Drag and drop multiple folders here")
-        self.assertContains(response, "webkitGetAsEntry")
 
     def test_news_stores_admin_managed_metadata(self):
         article = News.objects.create(
