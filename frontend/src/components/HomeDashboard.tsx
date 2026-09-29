@@ -69,7 +69,7 @@ export default function HomeDashboard() {
     { label: 'Sales volume', value: formatCurrency(numbers.salesVolume), icon: CircleDollarSign, note: 'Month to date' },
   ];
 
-  return <div className="mt-5 space-y-7">
+  return <div className="mt-5 space-y-4">
     <section aria-labelledby="news-heading" className="min-w-0">
       <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Latest updates</p><h2 id="news-heading" className="mt-1 text-xl font-extrabold">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
@@ -83,7 +83,7 @@ export default function HomeDashboard() {
       </div>
       <div className="grid sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ label, value, icon: Icon, note }, index) => <div key={label} className={`p-4 ${index ? 'border-t sm:border-l sm:border-t-0' : ''} ${index === 2 ? 'sm:border-l-0 sm:border-t xl:border-l xl:border-t-0' : ''} border-slate-100 dark:border-slate-800`}><div className="flex items-start justify-between gap-2"><div><p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-xl font-black tracking-tight">{value}</p><p className="mt-0.5 text-[11px] text-slate-500">{note}</p></div><Icon className="h-4 w-4 shrink-0 text-slate-400" /></div></div>)}</div>
     </section>
-    </div>
+
 
     <div className="grid gap-7 xl:grid-cols-[minmax(0,1.7fr)_360px]">
       <section aria-labelledby="performance-heading" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
