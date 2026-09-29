@@ -216,6 +216,54 @@ class AdminContentModelTests(TestCase):
         folder = DocumentFolder.objects.get(name="Coming soon")
         self.assertEqual(folder.parent.name, "Campaigns")
 
+    def test_admin_can_import_a_folder_and_preserve_nested_paths(self):
+        category = DocumentCategory.objects.get(name="General")
+        response = self.client.post(
+            reverse("admin:content_document_import_folder"),
+            {
+                "categories": [category.pk],
+                "files": [
+                    SimpleUploadedFile("welcome.pdf", b"welcome"),
+                    SimpleUploadedFile("contacts.txt", b"contacts"),
+                    SimpleUploadedFile("logo.svg", b"logo"),
+                ],
+                "relative_paths": [
+                    "Starter kit/welcome.pdf",
+                    "Starter kit/Reference/contacts.txt",
+                    "Brand assets/Logos/logo.svg",
+                ],
+                "folder_paths": [
+                    "Starter kit",
+                    "Starter kit/Reference",
+                    "Brand assets",
+                    "Brand assets/Logos",
+                    "Brand assets/Empty folder",
+                ],
+            },
+        )
+
+        self.assertRedirects(response, reverse("admin:content_document_changelist"))
+        self.assertEqual(Document.objects.get(title="welcome").folder.path, "Starter kit")
+        self.assertEqual(Document.objects.get(title="contacts").folder.path, "Starter kit / Reference")
+        self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
+        self.assertTrue(DocumentFolder.objects.filter(name="Empty folder", parent__name="Brand assets").exists())
+        self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
+        self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
+
+    def test_admin_folder_manifest_preserves_empty_nested_folders(self):
+        category = DocumentCategory.objects.get(name="General")
+        response = self.client.post(
+            reverse("admin:content_document_import_folder"),
+            {
+                "categories": [category.pk],
+                "folder_paths": ["Campaigns", "Campaigns/Coming soon"],
+            },
+        )
+
+        self.assertRedirects(response, reverse("admin:content_document_changelist"))
+        folder = DocumentFolder.objects.get(name="Coming soon")
+        self.assertEqual(folder.parent.name, "Campaigns")
+
     def test_news_stores_admin_managed_metadata(self):
         article = News.objects.create(
             title="Office update",
