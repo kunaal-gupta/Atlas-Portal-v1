@@ -1,7 +1,9 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Agency(models.Model):
@@ -80,17 +82,76 @@ class DocumentCategory(models.Model):
         return self.name
 
 
+class DocumentFolder(models.Model):
+    """A folder in the document library; folders may be nested without a depth limit."""
+
+    name = models.CharField(max_length=255)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="children",
+    )
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("parent", "name"),
+                condition=models.Q(parent__isnull=False),
+                name="unique_document_folder_name_per_parent",
+            ),
+            models.UniqueConstraint(
+                fields=("name",),
+                condition=models.Q(parent__isnull=True),
+                name="unique_root_document_folder_name",
+            ),
+        ]
+
+    def __str__(self):
+        return self.path
+
+    @property
+    def path(self):
+        parts = [self.name]
+        parent = self.parent
+        while parent:
+            parts.append(parent.name)
+            parent = parent.parent
+        return " / ".join(reversed(parts))
+
+    def clean(self):
+        super().clean()
+        parent = self.parent
+        while parent:
+            if parent.pk == self.pk:
+                raise ValidationError({"parent": "A folder cannot be inside itself."})
+            parent = parent.parent
+
+
 class Document(models.Model):
     title = models.CharField(max_length=255)
     document_upload = models.FileField(upload_to="documents/", blank=True)
     external_url = models.URLField(blank=True)
+    folder = models.ForeignKey(
+        DocumentFolder,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="documents",
+        help_text="Optional folder used to organize this file in the portal.",
+    )
     categories = models.ManyToManyField(
         DocumentCategory,
         related_name="documents",
         help_text="Select every portal page where this document should be shown.",
     )
     created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
+    updated_date = models.DateTimeField(
+        default=timezone.now,
+        help_text="The source file's last-modified date when supplied by the uploader.",
+    )
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
