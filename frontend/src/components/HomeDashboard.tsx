@@ -83,6 +83,7 @@ export default function HomeDashboard() {
       </div>
       <div className="grid sm:grid-cols-2 xl:grid-cols-4">{metrics.map(({ label, value, icon: Icon, note }, index) => <div key={label} className={`p-4 ${index ? 'border-t sm:border-l sm:border-t-0' : ''} ${index === 2 ? 'sm:border-l-0 sm:border-t xl:border-l xl:border-t-0' : ''} border-slate-100 dark:border-slate-800`}><div className="flex items-start justify-between gap-2"><div><p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-xl font-black tracking-tight">{value}</p><p className="mt-0.5 text-[11px] text-slate-500">{note}</p></div><Icon className="h-4 w-4 shrink-0 text-slate-400" /></div></div>)}</div>
     </section>
+    </div>
 
     <div className="grid gap-7 xl:grid-cols-[minmax(0,1.7fr)_360px]">
       <section aria-labelledby="performance-heading" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
