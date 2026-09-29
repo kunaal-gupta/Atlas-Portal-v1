@@ -98,6 +98,19 @@ class PortalApiTests(TestCase):
 
         self.assertEqual(response.json()[0]["folder_path"], ["Guides", "Buyers"])
 
+    def test_portal_search_recommends_documents_agents_and_news(self):
+        general = DocumentCategory.objects.get(name="General")
+        document = Document.objects.create(title="Launch checklist", external_url="https://example.com/checklist")
+        document.categories.add(general)
+        Agent.objects.create(email="launch@example.com", full_name="Launch Coordinator")
+        News.objects.create(title="Launch update", published_at=timezone.now())
+
+        response = self.client.get(reverse("portal-search"), {"q": "launch"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertCountEqual([item["type"] for item in response.json()], ["Document", "Agent", "News"])
+        self.assertTrue(all(item["title"] for item in response.json()))
+
 
 class AdminContentModelTests(TestCase):
     def setUp(self):

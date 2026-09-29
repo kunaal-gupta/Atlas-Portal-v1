@@ -80,6 +80,8 @@ Administrators can organize documents into folders (including nested folders) fr
 
 To upload existing directory trees in one step, open **Content management → Documents**, choose **Import folder**, and select the portal pages/categories. You can use the folder picker or drag several folders together onto the drop zone. A preview shows the complete tree before import, and drag-and-drop preserves nested and empty directories as well as their files.
 
+Portal users can search pages, documents, agents, and news from the global header. Document libraries also support file/folder filtering, name or modified-date sorting, expandable folders, and grid or list layouts.
+
 ## API endpoints
 
 - `GET /api/news/` with optional `?search=` filtering
