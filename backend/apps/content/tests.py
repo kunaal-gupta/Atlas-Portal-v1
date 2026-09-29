@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
-from .models import Agent, Agency, Document, DocumentCategory, News
+from .models import Agent, Agency, Document, DocumentCategory, DocumentFolder, News
 
 
 class PortalApiTests(TestCase):
@@ -82,6 +83,21 @@ class PortalApiTests(TestCase):
         self.assertEqual([document["title"] for document in response.json()], ["Market guide"])
         self.assertEqual(response.json()[0]["url"], "https://example.com/market")
 
+    def test_documents_endpoint_includes_nested_folder_path(self):
+        market = DocumentCategory.objects.get(name="Market")
+        guides = DocumentFolder.objects.create(name="Guides")
+        buyers = DocumentFolder.objects.create(name="Buyers", parent=guides)
+        document = Document.objects.create(
+            title="Closing checklist",
+            external_url="https://example.com/checklist",
+            folder=buyers,
+        )
+        document.categories.add(market)
+
+        response = self.client.get(reverse("document-list"), {"category": "Market"})
+
+        self.assertEqual(response.json()[0]["folder_path"], ["Guides", "Buyers"])
+
 
 class AdminContentModelTests(TestCase):
     def setUp(self):
@@ -130,6 +146,38 @@ class AdminContentModelTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Document.objects.get().updated_by, self.user)
+
+    def test_admin_can_import_multiple_folders_and_preserve_nested_paths(self):
+        category = DocumentCategory.objects.get(name="General")
+        response = self.client.post(
+            reverse("admin:content_document_import_folder"),
+            {
+                "categories": [category.pk],
+                "files": [
+                    SimpleUploadedFile("welcome.pdf", b"welcome"),
+                    SimpleUploadedFile("contacts.txt", b"contacts"),
+                    SimpleUploadedFile("logo.svg", b"logo"),
+                ],
+                "relative_paths": [
+                    "Starter kit/welcome.pdf",
+                    "Starter kit/Reference/contacts.txt",
+                    "Brand assets/Logos/logo.svg",
+                ],
+            },
+        )
+
+        self.assertRedirects(response, reverse("admin:content_document_changelist"))
+        self.assertEqual(Document.objects.get(title="welcome").folder.path, "Starter kit")
+        self.assertEqual(Document.objects.get(title="contacts").folder.path, "Starter kit / Reference")
+        self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
+        self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
+        self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
+
+    def test_folder_import_page_offers_multi_folder_drop_zone(self):
+        response = self.client.get(reverse("admin:content_document_import_folder"))
+
+        self.assertContains(response, "Drag and drop multiple folders here")
+        self.assertContains(response, "webkitGetAsEntry")
 
     def test_news_stores_admin_managed_metadata(self):
         article = News.objects.create(

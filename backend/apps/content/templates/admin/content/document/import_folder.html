@@ -1,0 +1,146 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:content_document_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; Import folder
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" enctype="multipart/form-data" id="folder-import-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+          {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-row">
+        <label class="required" for="id_files">Folders:</label>
+        <div id="folder-inputs">
+          <p><input id="id_files" name="files" type="file" webkitdirectory directory multiple required></p>
+        </div>
+        <button type="button" id="add-folder">Choose another folder</button>
+        <div class="help">Use the button to choose folders one at a time, or drag several folders into the box below in one go.</div>
+        <div id="folder-drop-zone" style="margin-top: 12px; padding: 24px; border: 2px dashed var(--border-color); border-radius: 4px; text-align: center;">
+          <strong>Drag and drop multiple folders here</strong>
+          <div class="help" id="drop-status">You can select several folders in your file manager and drop them together.</div>
+        </div>
+        <input id="dropped-files" name="files" type="file" multiple hidden>
+        <div id="relative-paths"></div>
+      </div>
+    </fieldset>
+    <div class="submit-row"><input type="submit" value="Import folder" class="default"></div>
+  </form>
+</div>
+<script>
+  const folderInputs = document.getElementById('folder-inputs');
+  const addFolderButton = document.getElementById('add-folder');
+  const dropZone = document.getElementById('folder-drop-zone');
+  const droppedInput = document.getElementById('dropped-files');
+  const dropStatus = document.getElementById('drop-status');
+  const droppedData = new DataTransfer();
+  const droppedPaths = [];
+
+  function updateRelativePaths() {
+    const container = document.getElementById('relative-paths');
+    container.replaceChildren();
+    folderInputs.querySelectorAll('input[type="file"]').forEach(function (folderInput) {
+      Array.from(folderInput.files).forEach(function (file) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'relative_paths';
+        input.value = file.webkitRelativePath || file.name;
+        container.appendChild(input);
+      });
+    });
+    droppedPaths.forEach(function (path) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'relative_paths';
+      input.value = path;
+      container.appendChild(input);
+    });
+  }
+
+  function readEntries(directoryReader) {
+    return new Promise(function (resolve, reject) {
+      const entries = [];
+      function readBatch() {
+        directoryReader.readEntries(function (batch) {
+          if (!batch.length) return resolve(entries);
+          entries.push(...batch);
+          readBatch();
+        }, reject);
+      }
+      readBatch();
+    });
+  }
+
+  function getFile(entry) {
+    return new Promise(function (resolve, reject) { entry.file(resolve, reject); });
+  }
+
+  async function collectEntry(entry, path) {
+    const relativePath = path ? path + '/' + entry.name : entry.name;
+    if (entry.isFile) {
+      const file = await getFile(entry);
+      droppedData.items.add(file);
+      droppedPaths.push(relativePath);
+      return;
+    }
+    const children = await readEntries(entry.createReader());
+    await Promise.all(children.map(function (child) { return collectEntry(child, relativePath); }));
+  }
+
+  folderInputs.addEventListener('change', updateRelativePaths);
+  addFolderButton.addEventListener('click', function () {
+    const row = document.createElement('p');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'files';
+    input.multiple = true;
+    input.setAttribute('webkitdirectory', '');
+    input.setAttribute('directory', '');
+    row.appendChild(input);
+    folderInputs.appendChild(row);
+    input.click();
+  });
+
+  ['dragenter', 'dragover'].forEach(function (eventName) {
+    dropZone.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      dropZone.style.borderColor = 'var(--primary)';
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (eventName) {
+    dropZone.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      dropZone.style.borderColor = 'var(--border-color)';
+    });
+  });
+  dropZone.addEventListener('drop', async function (event) {
+    const entries = Array.from(event.dataTransfer.items)
+      .map(function (item) { return item.webkitGetAsEntry && item.webkitGetAsEntry(); })
+      .filter(Boolean);
+    if (!entries.length) {
+      dropStatus.textContent = 'This browser could not read those folders. Use the folder picker above instead.';
+      return;
+    }
+    dropStatus.textContent = 'Reading folders…';
+    await Promise.all(entries.map(function (entry) { return collectEntry(entry, ''); }));
+    droppedInput.files = droppedData.files;
+    document.getElementById('id_files').required = false;
+    updateRelativePaths();
+    dropStatus.textContent = droppedData.files.length + ' files ready from ' + entries.length + ' selected items.';
+  });
+</script>
+{% endblock %}
