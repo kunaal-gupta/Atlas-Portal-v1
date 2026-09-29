@@ -1,0 +1,49 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:content_document_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; Import folder
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" enctype="multipart/form-data" id="folder-import-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+          {{ field.label_tag }} {{ field }}
+          {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-row">
+        <label class="required" for="id_files">Folder:</label>
+        <input id="id_files" name="files" type="file" webkitdirectory directory multiple required>
+        <div class="help">Choose a local folder. Its nested folder structure will be preserved.</div>
+        <div id="relative-paths"></div>
+      </div>
+    </fieldset>
+    <div class="submit-row"><input type="submit" value="Import folder" class="default"></div>
+  </form>
+</div>
+<script>
+  document.getElementById('id_files').addEventListener('change', function () {
+    const container = document.getElementById('relative-paths');
+    container.replaceChildren();
+    Array.from(this.files).forEach(function (file) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'relative_paths';
+      input.value = file.webkitRelativePath || file.name;
+      container.appendChild(input);
+    });
+  });
+</script>
+{% endblock %}

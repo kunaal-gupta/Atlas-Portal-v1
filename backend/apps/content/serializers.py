@@ -32,12 +32,21 @@ class NewsSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    folder_path = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
-        fields = ("id", "title", "url", "updated_date")
+        fields = ("id", "title", "url", "folder_path", "updated_date")
 
     def get_url(self, document):
         if document.document_upload:
             return self.context["request"].build_absolute_uri(document.document_upload.url)
         return document.external_url
+
+    def get_folder_path(self, document):
+        path = []
+        folder = document.folder
+        while folder:
+            path.append(folder.name)
+            folder = folder.parent
+        return list(reversed(path))
