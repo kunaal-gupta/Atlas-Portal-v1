@@ -80,6 +80,8 @@ Administrators can organize documents into folders (including nested folders) fr
 
 To upload existing directory trees in one step, open **Content management → Documents**, choose **Import folder**, and select the portal pages/categories. You can use the folder picker or drag several folders together onto the drop zone. A preview shows the complete tree before import, and drag-and-drop preserves nested and empty directories as well as their files.
 
+When a local file is selected or imported, Atlas records the file's own last-modified timestamp as the document's **Updated date** instead of replacing it with the upload time. External links and uploads without browser file metadata fall back to the time they were added.
+
 Portal users can search pages, documents, agents, and news from the global header. Document libraries also support file/folder filtering, name or modified-date sorting, an expandable folder grid, and a flat table view with directory and file metadata.
 
 ## API endpoints

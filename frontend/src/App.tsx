@@ -43,15 +43,7 @@ const navigation: NavigationGroup[] = [
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
-function HomePage() { return <div className="mx-auto max-w-[1500px] px-5 py-5 lg:px-10">
-    <section className="flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl bg-slate-900 px-6 py-4 text-white">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10">
-            <Sparkles className="h-4 w-4 text-indigo-300" />
-        </span>
-        <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-extrabold">Good morning, Alex.</h1><p className="text-sm text-slate-300">Here’s what’s happening across Atlas today.</p></div><a href="/the-numbers/market/" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">View market <ArrowRight className="h-4 w-4" /></a>
-    </section><HomeDashboard /></div>;
-}
+function HomePage() { return <div className="mx-auto max-w-[1500px] px-5 py-5 lg:px-10"><section className="flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl bg-slate-900 px-6 py-4 text-white"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10"><Sparkles className="h-4 w-4 text-indigo-300" /></span><div className="min-w-0 flex-1"><h1 className="text-2xl font-extrabold">Good morning, Alex.</h1><p className="text-sm text-slate-300">Here’s what’s happening across Atlas today.</p></div><a href="/the-numbers/market/" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">View market <ArrowRight className="h-4 w-4" /></a></section><HomeDashboard /></div>; }
 
 export default function App() {
   const Page = routes[window.location.pathname];

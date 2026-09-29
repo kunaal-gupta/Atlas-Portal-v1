@@ -5,8 +5,10 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import path
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
-from .forms import FolderImportForm
+from .forms import DocumentAdminForm, FolderImportForm
 from .models import (
     Agent,
     Agency,
@@ -70,6 +72,7 @@ class DocumentFolderAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
+    form = DocumentAdminForm
     change_list_template = "admin/content/document/change_list.html"
     list_display = ("title", "folder", "category_list", "updated_date", "updated_by")
     list_filter = ("folder", "categories", "created_date", "updated_date")
@@ -77,12 +80,17 @@ class DocumentAdmin(admin.ModelAdmin):
     filter_horizontal = ("categories",)
     readonly_fields = ("created_date", "updated_date", "updated_by")
 
+    class Media:
+        js = ("content/document_modified_date.js",)
+
     @admin.display(description="Pages / categories")
     def category_list(self, obj):
         return ", ".join(obj.categories.values_list("name", flat=True))
 
     def save_model(self, request, obj, form, change):
         obj.updated_by = request.user
+        if form.cleaned_data.get("source_modified_at"):
+            obj.updated_date = form.cleaned_data["source_modified_at"]
         super().save_model(request, obj, form, change)
 
     def get_urls(self):
@@ -102,6 +110,7 @@ class DocumentAdmin(admin.ModelAdmin):
         if request.method == "POST" and form.is_valid():
             files = request.FILES.getlist("files")
             relative_paths = request.POST.getlist("relative_paths")
+            modified_dates = request.POST.getlist("modified_dates")
             folder_paths = request.POST.getlist("folder_paths")
             if not files and not folder_paths:
                 form.add_error(None, "Choose a folder containing at least one file.")
@@ -112,6 +121,7 @@ class DocumentAdmin(admin.ModelAdmin):
                     imported = self._import_files(
                         files,
                         relative_paths,
+                        modified_dates,
                         folder_paths,
                         form.cleaned_data["parent"],
                         form.cleaned_data["categories"],
@@ -129,7 +139,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return render(request, "admin/content/document/import_folder.html", context)
 
     @staticmethod
-    def _import_files(files, relative_paths, folder_paths, parent, categories, user):
+    def _import_files(files, relative_paths, modified_dates, folder_paths, parent, categories, user):
         folder_cache = {}
         imported = 0
 
@@ -152,16 +162,18 @@ class DocumentAdmin(admin.ModelAdmin):
                 continue
             get_folder(folder_path.parts)
 
-        for uploaded_file, raw_path in zip(files, relative_paths):
+        for index, (uploaded_file, raw_path) in enumerate(zip(files, relative_paths)):
             relative_path = PurePosixPath(raw_path.replace("\\", "/"))
             if relative_path.is_absolute() or ".." in relative_path.parts:
                 continue
             current = get_folder(relative_path.parts[:-1])
+            source_modified_at = parse_datetime(modified_dates[index]) if index < len(modified_dates) else None
             document = Document.objects.create(
                 title=relative_path.stem,
                 document_upload=uploaded_file,
                 folder=current,
                 updated_by=user,
+                updated_date=source_modified_at or timezone.now(),
             )
             document.categories.set(categories)
             imported += 1

@@ -1,6 +1,14 @@
 from django import forms
 
-from .models import DocumentCategory, DocumentFolder
+from .models import Document, DocumentCategory, DocumentFolder
+
+
+class DocumentAdminForm(forms.ModelForm):
+    source_modified_at = forms.DateTimeField(required=False, widget=forms.HiddenInput())
+
+    class Meta:
+        model = Document
+        fields = "__all__"
 
 
 class FolderImportForm(forms.Form):

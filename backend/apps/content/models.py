@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Agency(models.Model):
@@ -147,7 +148,10 @@ class Document(models.Model):
         help_text="Select every portal page where this document should be shown.",
     )
     created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
+    updated_date = models.DateTimeField(
+        default=timezone.now,
+        help_text="The source file's last-modified date when supplied by the uploader.",
+    )
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

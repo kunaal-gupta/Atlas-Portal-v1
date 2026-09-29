@@ -71,9 +71,14 @@
     folderInputs.querySelectorAll('input[type="file"]').forEach(function (folderInput) {
       Array.from(folderInput.files).forEach(function (file) {
         addHiddenValue(container, 'relative_paths', file.webkitRelativePath || file.name);
+        addHiddenValue(container, 'modified_dates', file.lastModified ? new Date(file.lastModified).toISOString() : '');
       });
     });
-    droppedPaths.forEach(function (path) { addHiddenValue(container, 'relative_paths', path); });
+    droppedPaths.forEach(function (path, index) {
+      addHiddenValue(container, 'relative_paths', path);
+      const file = droppedData.files[index];
+      addHiddenValue(container, 'modified_dates', file && file.lastModified ? new Date(file.lastModified).toISOString() : '');
+    });
     droppedFolders.forEach(function (path) { addHiddenValue(container, 'folder_paths', path); });
   }
 
