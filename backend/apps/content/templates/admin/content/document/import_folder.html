@@ -24,9 +24,12 @@
         </div>
       {% endfor %}
       <div class="form-row">
-        <label class="required" for="id_files">Folder:</label>
-        <input id="id_files" name="files" type="file" webkitdirectory directory multiple required>
-        <div class="help">Choose a local folder. Its nested folder structure will be preserved.</div>
+        <label class="required" for="id_files">Folders:</label>
+        <div id="folder-inputs">
+          <p><input id="id_files" name="files" type="file" webkitdirectory directory multiple required></p>
+        </div>
+        <button type="button" id="add-folder">Choose another folder</button>
+        <div class="help">Choose one or more local folders. Their nested folder structures will be preserved.</div>
         <div id="relative-paths"></div>
       </div>
     </fieldset>
@@ -34,16 +37,35 @@
   </form>
 </div>
 <script>
-  document.getElementById('id_files').addEventListener('change', function () {
+  const folderInputs = document.getElementById('folder-inputs');
+  const addFolderButton = document.getElementById('add-folder');
+
+  function updateRelativePaths() {
     const container = document.getElementById('relative-paths');
     container.replaceChildren();
-    Array.from(this.files).forEach(function (file) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'relative_paths';
-      input.value = file.webkitRelativePath || file.name;
-      container.appendChild(input);
+    folderInputs.querySelectorAll('input[type="file"]').forEach(function (folderInput) {
+      Array.from(folderInput.files).forEach(function (file) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'relative_paths';
+        input.value = file.webkitRelativePath || file.name;
+        container.appendChild(input);
+      });
     });
+  }
+
+  folderInputs.addEventListener('change', updateRelativePaths);
+  addFolderButton.addEventListener('click', function () {
+    const row = document.createElement('p');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'files';
+    input.multiple = true;
+    input.setAttribute('webkitdirectory', '');
+    input.setAttribute('directory', '');
+    row.appendChild(input);
+    folderInputs.appendChild(row);
+    input.click();
   });
 </script>
 {% endblock %}

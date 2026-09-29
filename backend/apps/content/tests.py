@@ -156,10 +156,12 @@ class AdminContentModelTests(TestCase):
                 "files": [
                     SimpleUploadedFile("welcome.pdf", b"welcome"),
                     SimpleUploadedFile("contacts.txt", b"contacts"),
+                    SimpleUploadedFile("logo.svg", b"logo"),
                 ],
                 "relative_paths": [
                     "Starter kit/welcome.pdf",
                     "Starter kit/Reference/contacts.txt",
+                    "Brand assets/Logos/logo.svg",
                 ],
             },
         )
@@ -167,6 +169,7 @@ class AdminContentModelTests(TestCase):
         self.assertRedirects(response, reverse("admin:content_document_changelist"))
         self.assertEqual(Document.objects.get(title="welcome").folder.path, "Starter kit")
         self.assertEqual(Document.objects.get(title="contacts").folder.path, "Starter kit / Reference")
+        self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
         self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
         self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
 
