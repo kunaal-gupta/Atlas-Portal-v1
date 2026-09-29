@@ -10,7 +10,7 @@ const MOZAIC = 'mozaic realty group';
 
 export default function AgentPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('search') ?? '');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
