@@ -47,5 +47,5 @@ function HomePage() { return <div className="mx-auto max-w-[1500px] px-5 py-7 lg
 
 export default function App() {
   const Page = routes[window.location.pathname];
-  return <div className="app-grid min-h-screen bg-[#f7f8fc] text-slate-950 dark:bg-[#080b12] dark:text-slate-100"><Header /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950">© {new Date().getFullYear()} Atlas internal agent intelligence</footer></div>;
+  return <div className="app-grid min-h-screen bg-[#f7f8fc] text-slate-950 dark:bg-[#080b12] dark:text-slate-100"><Header groups={navigation} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a></div></footer></div>;
 }

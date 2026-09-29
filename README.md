@@ -74,8 +74,16 @@ The backend reads the following environment variables:
 
 Uploaded files are written to `backend/media/`, and collected static assets to `backend/staticfiles/`; both directories are ignored by Git.
 
+### Organizing document files
+
+Administrators can organize documents into folders (including nested folders) from **Content management → Document folders**. A document can be placed in a folder when it is added or edited.
+
+To upload existing directory trees in one step, open **Content management → Documents**, choose **Import folder**, and select the portal pages/categories. You can use the folder picker or drag several folders together onto the drop zone. A preview shows the complete tree before import, and drag-and-drop preserves nested and empty directories as well as their files.
+
+Portal users can search pages, documents, agents, and news from the global header. Document libraries also support file/folder filtering, name or modified-date sorting, expandable folders, and grid or list layouts.
+
 ## API endpoints
 
 - `GET /api/news/` with optional `?search=` filtering
 - `GET /api/agents/` with optional `?search=` filtering
-- `GET /api/documents/` with optional `?category=` filtering
+- `GET /api/documents/` with optional `?category=` filtering; each document includes its `folder_path`
