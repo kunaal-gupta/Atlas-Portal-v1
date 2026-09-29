@@ -55,6 +55,7 @@
   const previewTree = document.getElementById('preview-tree');
   let droppedData = new DataTransfer();
   let droppedPaths = [];
+  let droppedModifiedDates = [];
   let droppedFolders = [];
 
   function addHiddenValue(container, name, value) {
@@ -76,8 +77,7 @@
     });
     droppedPaths.forEach(function (path, index) {
       addHiddenValue(container, 'relative_paths', path);
-      const file = droppedData.files[index];
-      addHiddenValue(container, 'modified_dates', file && file.lastModified ? new Date(file.lastModified).toISOString() : '');
+      addHiddenValue(container, 'modified_dates', droppedModifiedDates[index]);
     });
     droppedFolders.forEach(function (path) { addHiddenValue(container, 'folder_paths', path); });
   }
@@ -106,6 +106,7 @@
       const file = await readFile(entry);
       droppedData.items.add(file);
       droppedPaths.push(path);
+      droppedModifiedDates.push(file.lastModified ? new Date(file.lastModified).toISOString() : '');
       return;
     }
     droppedFolders.push(path);
@@ -164,6 +165,7 @@
     }
     droppedData = new DataTransfer();
     droppedPaths = [];
+    droppedModifiedDates = [];
     droppedFolders = [];
     dropStatus.textContent = 'Reading folder structure…';
     entries.sort(function (left, right) { return left.name.localeCompare(right.name); });

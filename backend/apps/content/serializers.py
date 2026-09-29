@@ -33,10 +33,11 @@ class NewsSerializer(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     folder_path = serializers.SerializerMethodField()
+    folder_ancestors = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
-        fields = ("id", "title", "url", "folder_path", "updated_date")
+        fields = ("id", "title", "url", "folder_path", "folder_ancestors", "updated_date")
 
     def get_url(self, document):
         if document.document_upload:
@@ -44,9 +45,12 @@ class DocumentSerializer(serializers.ModelSerializer):
         return document.external_url
 
     def get_folder_path(self, document):
+        return [folder["name"] for folder in self.get_folder_ancestors(document)]
+
+    def get_folder_ancestors(self, document):
         path = []
         folder = document.folder
         while folder:
-            path.append(folder.name)
+            path.append({"id": folder.pk, "name": folder.name})
             folder = folder.parent
         return list(reversed(path))

@@ -84,6 +84,8 @@ When a local file is selected or imported, Atlas records the file's own last-mod
 
 Portal users can search pages, documents, agents, and news from the global header. Document libraries also support file/folder filtering, name or modified-date sorting, an expandable folder grid, and a flat table view with directory and file metadata.
 
+Document cards and table rows link to the permission-protected admin deletion confirmation. Library-level actions add top-level files or folders, while actions beside a folder preselect that folder as the new item's location or parent.
+
 ## API endpoints
 
 - `GET /api/news/` with optional `?search=` filtering

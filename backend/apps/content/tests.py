@@ -97,6 +97,10 @@ class PortalApiTests(TestCase):
         response = self.client.get(reverse("document-list"), {"category": "Market"})
 
         self.assertEqual(response.json()[0]["folder_path"], ["Guides", "Buyers"])
+        self.assertEqual(
+            response.json()[0]["folder_ancestors"],
+            [{"id": guides.pk, "name": "Guides"}, {"id": buyers.pk, "name": "Buyers"}],
+        )
 
     def test_portal_search_recommends_documents_agents_and_news(self):
         general = DocumentCategory.objects.get(name="General")
@@ -147,6 +151,7 @@ class AdminContentModelTests(TestCase):
 
     def test_document_admin_records_the_user_who_saved_it(self):
         category = DocumentCategory.objects.get(name="Agent")
+        add_page = self.client.get(reverse("admin:content_document_add"))
         response = self.client.post(
             reverse("admin:content_document_add"),
             {
@@ -158,6 +163,8 @@ class AdminContentModelTests(TestCase):
             },
         )
 
+        self.assertContains(add_page, 'id="id_source_modified_at"', html=False)
+        self.assertContains(add_page, "content/document_modified_date.js")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Document.objects.get().updated_by, self.user)
         self.assertEqual(Document.objects.get().updated_date.isoformat(), "2023-08-09T14:20:00+00:00")
@@ -198,54 +205,6 @@ class AdminContentModelTests(TestCase):
         self.assertEqual(Document.objects.get(title="contacts").folder.path, "Starter kit / Reference")
         self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
         self.assertEqual(Document.objects.get(title="logo").updated_date.isoformat(), "2024-03-04T12:15:00+00:00")
-        self.assertTrue(DocumentFolder.objects.filter(name="Empty folder", parent__name="Brand assets").exists())
-        self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
-        self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
-
-    def test_admin_folder_manifest_preserves_empty_nested_folders(self):
-        category = DocumentCategory.objects.get(name="General")
-        response = self.client.post(
-            reverse("admin:content_document_import_folder"),
-            {
-                "categories": [category.pk],
-                "folder_paths": ["Campaigns", "Campaigns/Coming soon"],
-            },
-        )
-
-        self.assertRedirects(response, reverse("admin:content_document_changelist"))
-        folder = DocumentFolder.objects.get(name="Coming soon")
-        self.assertEqual(folder.parent.name, "Campaigns")
-
-    def test_admin_can_import_a_folder_and_preserve_nested_paths(self):
-        category = DocumentCategory.objects.get(name="General")
-        response = self.client.post(
-            reverse("admin:content_document_import_folder"),
-            {
-                "categories": [category.pk],
-                "files": [
-                    SimpleUploadedFile("welcome.pdf", b"welcome"),
-                    SimpleUploadedFile("contacts.txt", b"contacts"),
-                    SimpleUploadedFile("logo.svg", b"logo"),
-                ],
-                "relative_paths": [
-                    "Starter kit/welcome.pdf",
-                    "Starter kit/Reference/contacts.txt",
-                    "Brand assets/Logos/logo.svg",
-                ],
-                "folder_paths": [
-                    "Starter kit",
-                    "Starter kit/Reference",
-                    "Brand assets",
-                    "Brand assets/Logos",
-                    "Brand assets/Empty folder",
-                ],
-            },
-        )
-
-        self.assertRedirects(response, reverse("admin:content_document_changelist"))
-        self.assertEqual(Document.objects.get(title="welcome").folder.path, "Starter kit")
-        self.assertEqual(Document.objects.get(title="contacts").folder.path, "Starter kit / Reference")
-        self.assertEqual(Document.objects.get(title="logo").folder.path, "Brand assets / Logos")
         self.assertTrue(DocumentFolder.objects.filter(name="Empty folder", parent__name="Brand assets").exists())
         self.assertEqual(Document.objects.get(title="contacts").updated_by, self.user)
         self.assertEqual(Document.objects.get(title="contacts").categories.get(), category)
