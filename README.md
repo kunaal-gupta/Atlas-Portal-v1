@@ -71,6 +71,32 @@ The backend reads the following environment variables:
 | `DJANGO_DEBUG` | `true` | Enables Django debug mode |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated allowed hosts |
 | `DJANGO_TIME_ZONE` | `UTC` | Application time zone |
+| `MICROSOFT_TENANT_ID` | — | Microsoft Entra tenant (directory) ID |
+| `MICROSOFT_CLIENT_ID` | — | Client ID for the Atlas calendar app registration |
+| `MICROSOFT_CLIENT_SECRET` | — | Server-only client secret for the app registration |
+| `OUTLOOK_CALENDAR_MAILBOX` | `technology@mozaicrealty.ca` | Microsoft 365 mailbox whose default calendar is shown |
+
+### Outlook calendar connection
+
+The Resources → Calendar page reads and writes the mailbox's Outlook calendar
+directly through Microsoft Graph. Events created, edited, or deleted in Atlas
+therefore appear in Outlook immediately, and Outlook changes appear in Atlas on
+refresh. Microsoft credentials are used only by Django and are never sent to the
+browser.
+
+To connect the production Microsoft 365 tenant:
+
+1. In **Microsoft Entra admin center**, register an application for Atlas.
+2. Add the Microsoft Graph **Application** permission `Calendars.ReadWrite` and
+   grant tenant-wide admin consent. For least privilege, an Exchange administrator
+   should also apply an application access policy that restricts the app to the
+   `technology@mozaicrealty.ca` mailbox.
+3. Create a client secret (or rotate the existing one), then set the four
+   environment variables above on the Django service and restart it.
+4. Open the Calendar page and use its refresh button to verify the connection.
+
+Do not put the client secret in Vite variables, source control, or browser-side
+code. Rotate it according to the organization's Microsoft 365 credential policy.
 
 Uploaded files are written to `backend/media/`, and collected static assets to `backend/staticfiles/`; both directories are ignored by Git.
 
@@ -91,3 +117,6 @@ Document cards and table rows link to the permission-protected admin deletion co
 - `GET /api/news/` with optional `?search=` filtering
 - `GET /api/agents/` with optional `?search=` filtering
 - `GET /api/documents/` with optional `?category=` filtering; each document includes its `folder_path`
+- `GET /api/calendar/events/?start=<ISO>&end=<ISO>` lists live Outlook events
+- `POST /api/calendar/events/` creates an Outlook event
+- `PATCH` or `DELETE /api/calendar/events/<event-id>/` updates or deletes an Outlook event

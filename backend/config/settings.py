@@ -55,6 +55,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+MICROSOFT_TENANT_ID = os.environ.get("MICROSOFT_TENANT_ID", "")
+MICROSOFT_CLIENT_ID = os.environ.get("MICROSOFT_CLIENT_ID", "")
+MICROSOFT_CLIENT_SECRET = os.environ.get("MICROSOFT_CLIENT_SECRET", "")
+OUTLOOK_CALENDAR_MAILBOX = os.environ.get("OUTLOOK_CALENDAR_MAILBOX", "technology@mozaicrealty.ca")
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",

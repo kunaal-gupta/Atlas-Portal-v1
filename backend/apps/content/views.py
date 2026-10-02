@@ -1,11 +1,94 @@
+from datetime import datetime, timedelta
 from urllib.parse import quote
 
+from django.conf import settings
 from django.db.models import Q
 from rest_framework import filters, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Agent, Document, News
+from .outlook import OutlookApiError, OutlookCalendarClient, OutlookConfigurationError
 from .serializers import AgentSerializer, DocumentSerializer, NewsSerializer
+
+
+def calendar_error_response(error):
+    if isinstance(error, OutlookConfigurationError):
+        return Response({"detail": str(error), "code": "not_configured"}, status=503)
+    return Response({"detail": str(error), "code": "outlook_error"}, status=error.status)
+
+
+def calendar_event_payload(data):
+    required = ("subject", "start", "end")
+    if any(not data.get(field) for field in required):
+        raise ValueError("Subject, start, and end are required.")
+    timezone_name = data.get("timeZone") or "Eastern Standard Time"
+    try:
+        start_value = datetime.fromisoformat(str(data["start"]).replace("Z", "+00:00"))
+        end_value = datetime.fromisoformat(str(data["end"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ValueError("Start and end must be valid ISO dates.") from error
+    if end_value <= start_value:
+        raise ValueError("End must be later than start.")
+    is_all_day = bool(data.get("isAllDay", False))
+    if is_all_day:
+        start_day = start_value.date()
+        end_day = max(end_value.date(), start_day + timedelta(days=1))
+        start_text = f"{start_day.isoformat()}T00:00:00"
+        end_text = f"{end_day.isoformat()}T00:00:00"
+    else:
+        start_text, end_text = str(data["start"]), str(data["end"])
+    payload = {
+        "subject": str(data["subject"]).strip()[:255],
+        "start": {"dateTime": start_text, "timeZone": timezone_name},
+        "end": {"dateTime": end_text, "timeZone": timezone_name},
+        "isAllDay": is_all_day,
+        "location": {"displayName": str(data.get("location", "")).strip()[:255]},
+        "body": {"contentType": "text", "content": str(data.get("description", "")).strip()},
+    }
+    if not payload["subject"]:
+        raise ValueError("Subject is required.")
+    return payload
+
+
+class CalendarEventListView(APIView):
+    """Read and create events in the configured Outlook shared calendar."""
+
+    def get(self, request):
+        start, end = request.query_params.get("start"), request.query_params.get("end")
+        if not start or not end:
+            return Response({"detail": "A start and end range is required."}, status=400)
+        try:
+            events = OutlookCalendarClient().list_events(start, end)
+            return Response({"events": events, "mailbox": settings.OUTLOOK_CALENDAR_MAILBOX})
+        except (OutlookConfigurationError, OutlookApiError) as error:
+            return calendar_error_response(error)
+
+    def post(self, request):
+        try:
+            event = OutlookCalendarClient().create_event(calendar_event_payload(request.data))
+            return Response(event, status=201)
+        except ValueError as error:
+            return Response({"detail": str(error)}, status=400)
+        except (OutlookConfigurationError, OutlookApiError) as error:
+            return calendar_error_response(error)
+
+
+class CalendarEventDetailView(APIView):
+    def patch(self, request, event_id):
+        try:
+            event = OutlookCalendarClient().update_event(event_id, calendar_event_payload(request.data))
+            return Response(event)
+        except ValueError as error:
+            return Response({"detail": str(error)}, status=400)
+        except (OutlookConfigurationError, OutlookApiError) as error:
+            return calendar_error_response(error)
+
+    def delete(self, request, event_id):
+        try:
+            OutlookCalendarClient().delete_event(event_id)
+            return Response(status=204)
+        except (OutlookConfigurationError, OutlookApiError) as error:
+            return calendar_error_response(error)
 
 
 class AgentViewSet(viewsets.ReadOnlyModelViewSet):
