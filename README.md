@@ -75,6 +75,30 @@ The backend reads the following environment variables:
 | `MICROSOFT_CLIENT_ID` | — | Client ID for the Atlas calendar app registration |
 | `MICROSOFT_CLIENT_SECRET` | — | Server-only client secret for the app registration |
 | `OUTLOOK_CALENDAR_MAILBOX` | `technology@mozaicrealty.ca` | Microsoft 365 mailbox whose default calendar is shown |
+| `DEFAULT_FROM_EMAIL` | `Atlas Portal <no-reply@localhost>` | Sender shown on one-time-code emails |
+| `EMAIL_BACKEND` | Django console backend | Django email backend (use SMTP in production) |
+| `EMAIL_HOST` / `EMAIL_PORT` | `localhost` / `25` | SMTP server used by the SMTP backend |
+| `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | — | SMTP credentials |
+| `EMAIL_USE_TLS` | `false` | Enables SMTP STARTTLS when set to `true` |
+
+### Passwordless portal access
+
+Atlas requires an approved email address and a six-digit, single-use login code.
+Codes expire after 10 minutes, are stored only as password hashes, allow no more
+than five attempts, and are rate-limited to one code per user per minute.
+
+To provision someone, a superuser first creates their Django user under
+**Authentication and Authorization → Users**, ensuring the email address is
+correct. Then add a record under **Content → Portal user access** and choose:
+
+- **Read-only** — can view portal content and calendar events.
+- **Write access** — can additionally create, edit, and delete calendar events.
+
+Turn off **Is enabled** to revoke access immediately. Only superusers can view or
+change these access records. For local development, login emails appear in the
+Django server console. Production must configure a working email backend, for
+example `django.core.mail.backends.smtp.EmailBackend` with the SMTP variables
+above.
 
 ### Outlook calendar connection
 
@@ -114,6 +138,9 @@ Document cards and table rows link to the permission-protected admin deletion co
 
 ## API endpoints
 
+- `GET` or `DELETE /api/auth/session/` reads or ends the current session
+- `POST /api/auth/request-code/` sends a one-time login code to an approved user
+- `POST /api/auth/verify-code/` verifies a code and starts the session
 - `GET /api/news/` with optional `?search=` filtering
 - `GET /api/agents/` with optional `?search=` filtering
 - `GET /api/documents/` with optional `?category=` filtering; each document includes its `folder_path`

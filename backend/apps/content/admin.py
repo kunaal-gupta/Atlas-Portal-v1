@@ -15,8 +15,57 @@ from .models import (
     Document,
     DocumentCategory,
     DocumentFolder,
+    LoginCode,
     News,
+    PortalAccess,
 )
+
+
+@admin.register(PortalAccess)
+class PortalAccessAdmin(admin.ModelAdmin):
+    list_display = ("user", "email", "role", "is_enabled", "updated_at")
+    list_editable = ("role", "is_enabled")
+    list_filter = ("role", "is_enabled")
+    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name")
+    autocomplete_fields = ("user",)
+    readonly_fields = ("updated_at",)
+
+    @admin.display(description="Email")
+    def email(self, obj):
+        return obj.user.email
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+@admin.register(LoginCode)
+class LoginCodeAdmin(admin.ModelAdmin):
+    list_display = ("user", "created_at", "expires_at", "used_at", "attempts")
+    readonly_fields = ("user", "code_hash", "created_at", "expires_at", "used_at", "attempts")
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class AgencyGroupFilter(admin.SimpleListFilter):

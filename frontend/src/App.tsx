@@ -1,4 +1,8 @@
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, LoaderCircle, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getSession, type PortalUser } from './api/auth';
+import { AuthContext } from './components/auth/AuthContext';
+import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar, { type NavigationGroup } from './components/layout/Sidebar';
 import HomeDashboard from './components/HomeDashboard';
@@ -46,6 +50,11 @@ const navigation: NavigationGroup[] = [
 function HomePage() { return <div className="mx-auto max-w-[1500px] px-5 py-5 lg:px-10"><section className="flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl bg-slate-900 px-6 py-4 text-white"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10"><Sparkles className="h-4 w-4 text-indigo-300" /></span><div className="min-w-0 flex-1"><h1 className="text-2xl font-extrabold">Good morning, Alex.</h1><p className="text-sm text-slate-300">Here’s what’s happening across Atlas today.</p></div><a href="/the-numbers/market/" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">View market <ArrowRight className="h-4 w-4" /></a></section><HomeDashboard /></div>; }
 
 export default function App() {
+  const [user, setUser] = useState<PortalUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { getSession().then(session => setUser(session.user)).catch(() => setUser(null)).finally(() => setLoading(false)); }, []);
+  if (loading) return <div className="grid min-h-screen place-items-center bg-slate-950 text-indigo-300"><LoaderCircle className="h-8 w-8 animate-spin" aria-label="Loading Atlas" /></div>;
+  if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
-  return <div className="app-grid min-h-screen bg-[#f7f8fc] text-slate-950 dark:bg-[#080b12] dark:text-slate-100"><Header groups={navigation} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a></div></footer></div>;
+  return <AuthContext.Provider value={user}><div className="app-grid min-h-screen bg-[#f7f8fc] text-slate-950 dark:bg-[#080b12] dark:text-slate-100"><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }
