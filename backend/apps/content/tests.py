@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
+from unittest.mock import patch
 from .models import Agent, Agency, Document, DocumentCategory, DocumentFolder, News
 
 
@@ -114,6 +115,59 @@ class PortalApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertCountEqual([item["type"] for item in response.json()], ["Document", "Agent", "News"])
         self.assertTrue(all(item["title"] for item in response.json()))
+
+    @patch("apps.content.views.OutlookCalendarClient")
+    def test_calendar_reads_events_from_outlook(self, client_class):
+        client_class.return_value.list_events.return_value = [{"id": "event-1", "subject": "Training"}]
+
+        response = self.client.get(reverse("calendar-events"), {
+            "start": "2026-10-01T00:00:00Z", "end": "2026-11-01T00:00:00Z"
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["events"][0]["subject"], "Training")
+        client_class.return_value.list_events.assert_called_once_with(
+            "2026-10-01T00:00:00Z", "2026-11-01T00:00:00Z"
+        )
+
+    @patch("apps.content.views.OutlookCalendarClient")
+    def test_calendar_creates_events_in_outlook(self, client_class):
+        client_class.return_value.create_event.return_value = {"id": "event-2", "subject": "Office meeting"}
+
+        response = self.client.post(reverse("calendar-events"), {
+            "subject": "Office meeting",
+            "start": "2026-10-05T09:00",
+            "end": "2026-10-05T10:00",
+            "location": "Boardroom",
+            "description": "Weekly update",
+            "timeZone": "Eastern Standard Time",
+            "isAllDay": False,
+        }, format="json")
+
+        self.assertEqual(response.status_code, 201)
+        payload = client_class.return_value.create_event.call_args.args[0]
+        self.assertEqual(payload["location"]["displayName"], "Boardroom")
+        self.assertEqual(payload["start"]["timeZone"], "Eastern Standard Time")
+
+    @patch("apps.content.views.OutlookCalendarClient")
+    def test_calendar_updates_and_deletes_outlook_events(self, client_class):
+        client_class.return_value.update_event.return_value = {"id": "event-3", "subject": "Updated"}
+        payload = {
+            "subject": "Updated", "start": "2026-10-06T13:00", "end": "2026-10-06T14:00",
+            "timeZone": "Eastern Standard Time", "isAllDay": False,
+        }
+
+        update = self.client.patch(reverse("calendar-event-detail", args=["event-3"]), payload, format="json")
+        delete = self.client.delete(reverse("calendar-event-detail", args=["event-3"]))
+
+        self.assertEqual(update.status_code, 200)
+        self.assertEqual(delete.status_code, 204)
+        client_class.return_value.update_event.assert_called_once()
+        client_class.return_value.delete_event.assert_called_once_with("event-3")
+
+    def test_calendar_requires_a_date_range(self):
+        response = self.client.get(reverse("calendar-events"))
+        self.assertEqual(response.status_code, 400)
 
 
 class AdminContentModelTests(TestCase):
