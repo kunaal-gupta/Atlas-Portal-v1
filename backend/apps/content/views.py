@@ -1,13 +1,20 @@
 from datetime import datetime, timedelta
+import secrets
 from urllib.parse import quote
 
 from django.conf import settings
+from django.contrib.auth import get_user_model, login, logout
+from django.core.mail import send_mail
 from django.db.models import Q
+from django.middleware.csrf import get_token
+from django.utils import timezone
 from rest_framework import filters, viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Agent, Document, News
+from .models import Agent, Document, LoginCode, News
 from .outlook import OutlookApiError, OutlookCalendarClient, OutlookConfigurationError
+from .permissions import HasPortalAccess, HasPortalWriteAccess, get_portal_access
 from .serializers import AgentSerializer, DocumentSerializer, NewsSerializer
 
 
@@ -53,6 +60,8 @@ def calendar_event_payload(data):
 class CalendarEventListView(APIView):
     """Read and create events in the configured Outlook shared calendar."""
 
+    permission_classes = (HasPortalWriteAccess,)
+
     def get(self, request):
         start, end = request.query_params.get("start"), request.query_params.get("end")
         if not start or not end:
@@ -74,6 +83,7 @@ class CalendarEventListView(APIView):
 
 
 class CalendarEventDetailView(APIView):
+    permission_classes = (HasPortalWriteAccess,)
     def patch(self, request, event_id):
         try:
             event = OutlookCalendarClient().update_event(event_id, calendar_event_payload(request.data))
@@ -92,6 +102,7 @@ class CalendarEventDetailView(APIView):
 
 
 class AgentViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (HasPortalAccess,)
     serializer_class = AgentSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
@@ -100,6 +111,7 @@ class AgentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class NewsViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (HasPortalAccess,)
     serializer_class = NewsSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ("title", "summary", "keywords")
@@ -107,6 +119,7 @@ class NewsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (HasPortalAccess,)
     serializer_class = DocumentSerializer
     pagination_class = None
 
@@ -122,6 +135,8 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PortalSearchView(APIView):
     """Return lightweight recommendations across searchable portal content."""
+
+    permission_classes = (HasPortalAccess,)
 
     def get(self, request):
         query = request.query_params.get("q", "").strip()
@@ -173,3 +188,85 @@ class PortalSearchView(APIView):
             for item in news_items
         )
         return Response(results[:12])
+
+
+def user_payload(user):
+    role = get_portal_access(user)
+    return {
+        "authenticated": bool(role),
+        "user": {
+            "name": user.get_full_name() or user.email or user.username,
+            "email": user.email,
+            "role": role,
+            "can_write": role == "write",
+            "is_superuser": user.is_superuser,
+        } if role else None,
+    }
+
+
+class SessionView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        get_token(request)
+        return Response(user_payload(request.user))
+
+    def delete(self, request):
+        logout(request)
+        return Response(status=204)
+
+
+class RequestLoginCodeView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        email = str(request.data.get("email", "")).strip().lower()
+        generic = {"detail": "If that email has portal access, a login code has been sent."}
+        if not email:
+            return Response({"detail": "Enter your email address."}, status=400)
+
+        user = get_user_model().objects.filter(email__iexact=email, is_active=True).first()
+        if not user or get_portal_access(user) is None:
+            return Response(generic)
+
+        recent = LoginCode.objects.filter(
+            user=user, created_at__gte=timezone.now() - timedelta(seconds=60)
+        ).exists()
+        if recent:
+            return Response(generic)
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        login_code = LoginCode(user=user, expires_at=timezone.now() + timedelta(minutes=10))
+        login_code.set_code(code)
+        login_code.save()
+        send_mail(
+            "Your Atlas login code",
+            f"Your one-time Atlas login code is {code}. It expires in 10 minutes.\n\nIf you did not request this code, you can ignore this email.",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+        )
+        return Response(generic)
+
+
+class VerifyLoginCodeView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        email = str(request.data.get("email", "")).strip().lower()
+        code = str(request.data.get("code", "")).strip()
+        user = get_user_model().objects.filter(email__iexact=email, is_active=True).first()
+        login_code = LoginCode.objects.filter(user=user, used_at__isnull=True).first() if user else None
+        if not login_code or not login_code.is_usable:
+            return Response({"detail": "That code is invalid or has expired."}, status=400)
+
+        login_code.attempts += 1
+        if not login_code.matches(code):
+            login_code.save(update_fields=("attempts",))
+            return Response({"detail": "That code is invalid or has expired."}, status=400)
+        if get_portal_access(user) is None:
+            return Response({"detail": "Your portal access is disabled."}, status=403)
+
+        now = timezone.now()
+        LoginCode.objects.filter(user=user, used_at__isnull=True).update(used_at=now)
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return Response(user_payload(user))

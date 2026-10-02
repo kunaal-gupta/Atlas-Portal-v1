@@ -20,10 +20,15 @@ export type EventInput = {
   description: string;
 };
 
+function csrfToken() {
+  return document.cookie.split('; ').find(value => value.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, {
+    credentials: 'same-origin',
     ...options,
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken(), ...options?.headers },
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));

@@ -1,6 +1,7 @@
 import uuid
 
 from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -67,6 +68,58 @@ class Agent(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class PortalAccess(models.Model):
+    """Controls whether an authentication user may use the portal and at what level."""
+
+    class Role(models.TextChoices):
+        READ_ONLY = "read", "Read-only"
+        WRITE = "write", "Write access"
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="portal_access",
+    )
+    role = models.CharField(max_length=5, choices=Role.choices, default=Role.READ_ONLY)
+    is_enabled = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "portal user access"
+        verbose_name_plural = "portal user access"
+
+    def __str__(self):
+        return f"{self.user.email or self.user.username} ({self.get_role_display()})"
+
+    @property
+    def can_write(self):
+        return self.is_enabled and self.role == self.Role.WRITE
+
+
+class LoginCode(models.Model):
+    """A short-lived, single-use login code. Only its password hash is stored."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="login_codes")
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    used_at = models.DateTimeField(blank=True, null=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def set_code(self, code):
+        self.code_hash = make_password(code)
+
+    def matches(self, code):
+        return check_password(code, self.code_hash)
+
+    @property
+    def is_usable(self):
+        return self.used_at is None and self.attempts < 5 and self.expires_at > timezone.now()
 
 
 class DocumentCategory(models.Model):

@@ -5,13 +5,15 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 from unittest.mock import patch
-from .models import Agent, Agency, Document, DocumentCategory, DocumentFolder, News
+from .models import Agent, Agency, Document, DocumentCategory, DocumentFolder, LoginCode, News, PortalAccess
 
 
 class PortalApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(username="editor", first_name="Portal", last_name="Editor")
+        self.user = get_user_model().objects.create_user(username="editor", email="editor@example.com", first_name="Portal", last_name="Editor")
+        PortalAccess.objects.create(user=self.user, role=PortalAccess.Role.WRITE)
+        self.client.force_authenticate(self.user)
 
     def test_news_endpoint_uses_admin_managed_news(self):
         article = News.objects.create(
@@ -287,3 +289,60 @@ class AdminContentModelTests(TestCase):
         )
 
         self.assertEqual(article.keywords, "office, update")
+
+
+class PasswordlessLoginTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            username="reader", email="reader@example.com", first_name="Riley", last_name="Reader"
+        )
+        self.access = PortalAccess.objects.create(user=self.user, role=PortalAccess.Role.READ_ONLY)
+
+    def test_approved_user_can_request_and_use_one_time_code(self):
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+        self.assertEqual(response.status_code, 200)
+        login_code = LoginCode.objects.get(user=self.user)
+        self.assertNotIn("code", response.json())
+        self.assertTrue(login_code.code_hash.startswith("pbkdf2_"))
+
+        login_code.set_code("123456")
+        login_code.save(update_fields=("code_hash",))
+        response = self.client.post(
+            reverse("auth-verify-code"), {"email": self.user.email, "code": "123456"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["user"]["role"], "read")
+        self.assertTrue(self.client.session.get("_auth_user_id"))
+        login_code.refresh_from_db()
+        self.assertIsNotNone(login_code.used_at)
+
+    def test_unknown_email_gets_same_request_response_without_a_code(self):
+        known = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+        unknown = self.client.post(reverse("auth-request-code"), {"email": "unknown@example.com"}, format="json")
+        self.assertEqual(known.json(), unknown.json())
+        self.assertEqual(LoginCode.objects.count(), 1)
+
+    def test_disabled_access_cannot_request_or_use_portal(self):
+        self.access.is_enabled = False
+        self.access.save()
+        response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(LoginCode.objects.exists())
+        self.client.force_authenticate(self.user)
+        self.assertEqual(self.client.get(reverse("news-list")).status_code, 403)
+
+    @patch("apps.content.views.OutlookCalendarClient")
+    def test_read_only_user_can_view_but_cannot_change_calendar(self, client_class):
+        client_class.return_value.list_events.return_value = []
+        self.client.force_authenticate(self.user)
+        read = self.client.get(reverse("calendar-events"), {
+            "start": "2026-10-01T00:00:00Z", "end": "2026-11-01T00:00:00Z"
+        })
+        write = self.client.post(reverse("calendar-events"), {
+            "subject": "Not allowed", "start": "2026-10-01T09:00", "end": "2026-10-01T10:00"
+        }, format="json")
+        self.assertEqual(read.status_code, 200)
+        self.assertEqual(write.status_code, 403)
+        client_class.return_value.create_event.assert_not_called()
