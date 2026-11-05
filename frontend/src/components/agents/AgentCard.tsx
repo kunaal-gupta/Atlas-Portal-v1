@@ -46,7 +46,7 @@ export default function AgentCard({
   const agencyName = agent.agency?.company_name || 'Independent';
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_30px_-18px_rgba(30,64,175,0.3)] transition duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-[0_18px_36px_-20px_rgba(30,64,175,0.4)] dark:border-slate-800 dark:bg-slate-900">
+    <article className="portal-interactive group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_10px_30px_-18px_rgba(30,64,175,0.3)] transition duration-300 hover:border-indigo-200 hover:shadow-[0_18px_36px_-20px_rgba(30,64,175,0.4)] dark:border-slate-800 dark:bg-slate-900">
 
       {/* Company Banner */}
       <div className="relative h-20 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-indigo-100 dark:from-slate-800 dark:via-slate-900 dark:to-indigo-950">
@@ -54,7 +54,7 @@ export default function AgentCard({
           <img
             src={banner}
             alt={`${agencyName} banner`}
-            className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-[1.02]"
+            className="h-full w-full object-contain p-2 transition duration-500 motion-safe:group-hover:scale-[1.02]"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -80,7 +80,7 @@ export default function AgentCard({
           className={`absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${
             active
               ? 'border-emerald-100 bg-emerald-50/90 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/90 dark:text-emerald-300'
-              : 'border-slate-200 bg-white/90 text-slate-500 dark:border-slate-700 dark:bg-slate-800/90'
+              : 'border-slate-100 bg-white/90 text-slate-500 dark:border-slate-700 dark:bg-slate-800/90'
           }`}
         >
           <span

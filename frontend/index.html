@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#edf2f7" />
+    <meta name="theme-color" content="#f5f7f9" />
     <meta name="description" content="Atlas agent resources portal" />
     <title>Atlas | Agent Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,16 +27,17 @@
                 900: '#243f38', 950: '#142923'
               },
               indigo: {
-                50: '#eef3f9', 100: '#dce7f3', 200: '#c0d2e7',
-                300: '#9ab7d6', 400: '#7597bf', 500: '#557daa',
-                600: '#40658f', 700: '#345376', 800: '#2c4663',
-                900: '#273c53', 950: '#19283a'
+                50: '#edf9fb', 100: '#d9f1f4', 200: '#afe1e8',
+                300: '#79ccd7', 400: '#42b2c3', 500: '#2097ab',
+                600: '#117e91', 700: '#106677', 800: '#125464',
+                900: '#144654', 950: '#092d37'
               }
             },
+            borderRadius: { lg: '0.875rem', xl: '1.125rem', '2xl': '1.75rem', '3xl': '2.125rem' },
             boxShadow: {
-              sm: '0 1px 3px rgb(35 55 80 / 0.04)',
-              md: '0 5px 16px rgb(35 55 80 / 0.07)',
-              lg: '0 10px 28px rgb(35 55 80 / 0.09)',
+              sm: '0 8px 28px rgb(18 29 45 / 0.06)',
+              md: '0 12px 36px rgb(18 29 45 / 0.09)',
+              lg: '0 18px 48px rgb(18 29 45 / 0.11)',
               xl: '0 16px 40px rgb(35 55 80 / 0.10)',
               '2xl': '0 24px 56px rgb(35 55 80 / 0.12)'
             }
@@ -50,13 +51,34 @@
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
-        background-color: #edf2f7;
+        background-color: #f5f7f9;
         color: #23384d;
       }
       h1, h2, h3, h4, h5, h6, button, nav {
         font-family: 'Manrope', sans-serif;
       }
-      html { color-scheme: light; }
+      html { color-scheme: light; touch-action: auto; }
+      .portal-background {
+        background-image: radial-gradient(ellipse at 0% 0%, rgb(20 184 201 / 0.10), transparent 42%), radial-gradient(ellipse at 100% 18%, rgb(146 113 220 / 0.07), transparent 40%);
+        background-repeat: no-repeat;
+      }
+      .dark .portal-background {
+        background-image: radial-gradient(ellipse at 0% 0%, rgb(20 184 201 / 0.08), transparent 42%), radial-gradient(ellipse at 100% 18%, rgb(146 113 220 / 0.06), transparent 40%);
+      }
+      .portal-interactive { position: relative; }
+      a:focus-visible, button:focus-visible { outline: 2px solid #117e91; outline-offset: 3px; }
+      @media (prefers-reduced-motion: no-preference) {
+        button, a.rounded-full { transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+        button:active, a.rounded-full:active { transform: scale(0.98); }
+      }
+      .portal-interactive:focus-within { box-shadow: 0 0 0 2px rgb(17 126 145 / 0.3), 0 12px 36px rgb(18 29 45 / 0.08); }
+      @media (prefers-reduced-motion: no-preference) {
+        .portal-interactive { transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; }
+        .portal-interactive:active { transform: scale(0.985); }
+        @media (hover: hover) and (pointer: fine) {
+          .portal-interactive:hover { transform: translateY(-2px) scale(1.01); }
+        }
+      }
       html.dark { color-scheme: dark; }
       .dark body { background-color: #142231; color: #d9e2ec; }
       ::selection { background: #dce7f3; color: #2c4663; }
