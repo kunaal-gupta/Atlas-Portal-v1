@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f6f7f8" />
+    <meta name="theme-color" content="#edf2f7" />
     <meta name="description" content="Atlas agent resources portal" />
     <title>Atlas | Agent Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,10 +15,16 @@
           extend: {
             colors: {
               slate: {
-                50: '#fafafa', 100: '#f3f4f5', 200: '#e3e5e8',
-                300: '#cdd1d6', 400: '#8b929c', 500: '#646d79',
-                600: '#4c5562', 700: '#37404c', 800: '#272f3a',
-                900: '#202731', 950: '#171d25'
+                50: '#f6f8fb', 100: '#eaf0f6', 200: '#d9e2ec',
+                300: '#bdcbd9', 400: '#8295a9', 500: '#5c7085',
+                600: '#455b72', 700: '#30465d', 800: '#23384d',
+                900: '#1c2c3d', 950: '#142231'
+              },
+              teal: {
+                50: '#f0f7f5', 100: '#deede7', 200: '#bddbd1',
+                300: '#99c4b5', 400: '#73aa98', 500: '#518c7a',
+                600: '#3e7464', 700: '#315d51', 800: '#294c43',
+                900: '#243f38', 950: '#142923'
               },
               indigo: {
                 50: '#eef3f9', 100: '#dce7f3', 200: '#c0d2e7',
@@ -44,19 +50,19 @@
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
-        background-color: #f6f7f8;
-        color: #272f3a;
+        background-color: #edf2f7;
+        color: #23384d;
       }
       h1, h2, h3, h4, h5, h6, button, nav {
         font-family: 'Manrope', sans-serif;
       }
       html { color-scheme: light; }
       html.dark { color-scheme: dark; }
-      .dark body { background-color: #171d25; color: #e3e5e8; }
+      .dark body { background-color: #142231; color: #d9e2ec; }
       ::selection { background: #dce7f3; color: #2c4663; }
       .dark ::selection { background: #345376; color: #eef3f9; }
-      .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cdd1d6 transparent; }
-      .dark .custom-scrollbar { scrollbar-color: #4c5562 transparent; }
+      .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #bdcbd9 transparent; }
+      .dark .custom-scrollbar { scrollbar-color: #455b72 transparent; }
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
       }
@@ -64,11 +70,11 @@
         background: transparent;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cdd1d6;
+        background: #bdcbd9;
         border-radius: 10px;
       }
       .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-        background: #8b929c;
+        background: #8295a9;
       }
     </style>
 </head>
