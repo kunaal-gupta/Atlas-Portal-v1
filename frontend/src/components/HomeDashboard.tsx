@@ -73,7 +73,7 @@ export default function HomeDashboard() {
     <div className="min-w-0 space-y-7">
     <section aria-labelledby="news-heading" className="min-w-0">
       <div className="mb-4 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Latest updates</p><h2 id="news-heading" className="mt-1 text-xl font-extrabold">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
-      <div className="grid gap-4 sm:grid-cols-2">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{visibleNews.map((item, index) => <NewsCard item={item} key={`${item.id}-${index}`} />)}</div>
       <div className="mt-3 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} className={`h-1.5 rounded-full transition-all ${slide === index ? 'w-6 bg-indigo-600' : 'w-1.5 bg-slate-300 dark:bg-slate-700'}`} />)}</div>
     </section>
 
