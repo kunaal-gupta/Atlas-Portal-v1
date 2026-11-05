@@ -8,12 +8,11 @@ interface PageHeaderProps {
   accent: string;
 }
 
-export default function PageHeader({ category, title, description, icon: Icon, accent }: PageHeaderProps) {
-  return <header className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${accent} px-7 py-8 text-white shadow-lg`}>
-    <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:18px_18px]" />
-    <div className="relative flex items-center gap-5">
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20"><Icon className="h-6 w-6" /></span>
-      <div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/70">{category}</p><h1 className="text-3xl font-extrabold tracking-tight">{title}</h1><p className="mt-1 max-w-2xl text-sm text-white/75">{description}</p></div>
+export default function PageHeader({ category, title, description, icon: Icon }: PageHeaderProps) {
+  return <header className="rounded-2xl border border-slate-200 bg-white px-6 py-6 text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+    <div className="flex items-start gap-4">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300"><Icon className="h-6 w-6" /></span>
+      <div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-slate-500 dark:text-slate-400">{category}</p><h1 className="text-2xl font-bold tracking-tight">{title}</h1><p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p></div>
     </div>
   </header>;
 }
