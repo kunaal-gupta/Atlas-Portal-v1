@@ -24,7 +24,7 @@ export default function LoginPage({ onLogin }: { onLogin: (user: PortalUser) => 
     finally { setBusy(false); }
   }
 
-  return <main className="relative grid min-h-screen place-items-center overflow-hidden bg-indigo-50 px-5 py-12 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+  return <main className="portal-background relative grid min-h-screen place-items-center overflow-hidden bg-indigo-50 px-5 py-12 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
     <div className="relative w-full max-w-md">
       <div className="mb-8 flex items-center justify-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#213c55] text-xl font-extrabold text-white dark:bg-indigo-950 dark:text-indigo-200">A</span><div><strong className="block text-2xl">Atlas</strong><small className="uppercase tracking-[.22em] text-slate-400">Intelligence portal</small></div></div>
       <section className="rounded-[28px] border border-slate-200 bg-white p-7 text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 sm:p-9">

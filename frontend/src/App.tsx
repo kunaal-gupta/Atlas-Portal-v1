@@ -1,7 +1,7 @@
 import { ArrowRight, LoaderCircle, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getSession, type PortalUser } from './api/auth';
-import { AuthContext } from './components/auth/AuthContext';
+import { AuthContext, usePortalUser } from './components/auth/AuthContext';
 import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar, { type NavigationGroup } from './components/layout/Sidebar';
@@ -47,7 +47,17 @@ const navigation: NavigationGroup[] = [
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
-function HomePage() { return <div className="mx-auto max-w-[1500px] px-5 py-5 lg:px-10"><section className="flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl border border-[#294861] bg-[#213c55] px-6 py-4 text-white shadow-md dark:border-slate-700 dark:bg-slate-900"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15"><Sparkles className="h-4 w-4 text-teal-200" /></span><div className="min-w-0 flex-1"><h1 className="text-2xl font-extrabold">Your Atlas overview</h1><p className="text-sm text-slate-200">News, brokerage updates, and company performance in one place.</p></div><a href="/the-numbers/market/" className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-2.5 text-xs font-bold text-indigo-800 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-200">View market <ArrowRight className="h-4 w-4" /></a></section><HomeDashboard /></div>; }
+function HomePage() {
+  const user = usePortalUser();
+  const firstName = user?.name.trim().split(/\s+/)[0];
+  return <div className="mx-auto max-w-[1500px] px-5 pb-5 pt-3 lg:px-10">
+    <section className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
+      <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">Welcome{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
+      <div className="flex flex-wrap gap-2"><a href="/resources/calendar/" className="portal-interactive rounded-full bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Calendar</a><a href="/the-numbers/agent/" className="portal-interactive rounded-full bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Agent directory</a><a href="/the-numbers/market/" className="portal-interactive inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700">Explore market <ArrowRight className="h-4 w-4" /></a></div>
+    </section>
+    <HomeDashboard />
+  </div>;
+}
 
 export default function App() {
   const [user, setUser] = useState<PortalUser | null>(null);
@@ -56,5 +66,5 @@ export default function App() {
   if (loading) return <div className="grid min-h-screen place-items-center bg-slate-50 text-indigo-600 dark:bg-slate-950 dark:text-indigo-300"><LoaderCircle className="h-8 w-8 animate-spin" aria-label="Loading Atlas" /></div>;
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
-  return <AuthContext.Provider value={user}><div className="min-h-screen bg-[#edf2f7] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#f5f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }
