@@ -4,31 +4,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#f6f7f8" />
     <meta name="description" content="Atlas agent resources portal" />
     <title>Atlas | Agent Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              slate: {
+                50: '#fafafa', 100: '#f3f4f5', 200: '#e3e5e8',
+                300: '#cdd1d6', 400: '#8b929c', 500: '#646d79',
+                600: '#4c5562', 700: '#37404c', 800: '#272f3a',
+                900: '#202731', 950: '#171d25'
+              },
+              indigo: {
+                50: '#eef3f9', 100: '#dce7f3', 200: '#c0d2e7',
+                300: '#9ab7d6', 400: '#7597bf', 500: '#557daa',
+                600: '#40658f', 700: '#345376', 800: '#2c4663',
+                900: '#273c53', 950: '#19283a'
+              }
+            },
+            boxShadow: {
+              sm: '0 1px 3px rgb(35 55 80 / 0.04)',
+              md: '0 5px 16px rgb(35 55 80 / 0.07)',
+              lg: '0 10px 28px rgb(35 55 80 / 0.09)',
+              xl: '0 16px 40px rgb(35 55 80 / 0.10)',
+              '2xl': '0 24px 56px rgb(35 55 80 / 0.12)'
+            }
+          }
+        }
+      };
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
-        background-color: #f1f5f9; /* Slightly darker slate for better contrast with white components */
-        color: #0f172a;
+        background-color: #f6f7f8;
+        color: #272f3a;
       }
       h1, h2, h3, h4, h5, h6, button, nav {
         font-family: 'Manrope', sans-serif;
       }
-      ::selection { background: #c7d2fe; color: #312e81; }
-      .app-grid {
-        background-image: radial-gradient(circle at 1px 1px, rgb(148 163 184 / 0.13) 1px, transparent 0);
-        background-size: 24px 24px;
-      }
-      .dark .app-grid {
-        background-image: radial-gradient(circle at 1px 1px, rgb(100 116 139 / 0.12) 1px, transparent 0);
-      }
+      html { color-scheme: light; }
+      html.dark { color-scheme: dark; }
+      .dark body { background-color: #171d25; color: #e3e5e8; }
+      ::selection { background: #dce7f3; color: #2c4663; }
+      .dark ::selection { background: #345376; color: #eef3f9; }
+      .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cdd1d6 transparent; }
+      .dark .custom-scrollbar { scrollbar-color: #4c5562 transparent; }
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
       }
@@ -36,11 +64,11 @@
         background: transparent;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #e2e8f0;
+        background: #cdd1d6;
         border-radius: 10px;
       }
       .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: #8b929c;
       }
     </style>
 </head>
