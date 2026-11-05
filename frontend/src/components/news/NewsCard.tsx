@@ -15,7 +15,7 @@ export default function NewsCard({ item, compact = false }: { item: NewsCardItem
     <a
       href={item.href}
       title={item.title}
-      className={`group flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-800 dark:bg-slate-900 ${compact ? 'h-48 gap-3 p-3' : 'min-h-52 gap-4 p-6'}`}
+      className={`group flex min-w-0 flex-col rounded-2xl border border-slate-200 border-t-[3px] bg-white shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-800 dark:bg-slate-900 ${item.type === 'Internal' ? 'border-t-indigo-300 dark:border-t-indigo-500' : 'border-t-teal-300 dark:border-t-teal-600'} ${compact ? 'h-48 gap-3 p-3' : 'min-h-52 gap-4 p-6'}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-1 text-[10px] font-medium">
         <span className={`rounded-md px-1.5 py-1 ${item.type === 'Internal' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300'}`}>{item.type} news</span>
