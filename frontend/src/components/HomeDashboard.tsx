@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { getNews } from '../api/news';
 import { announcements } from '../data/announcements';
+import AgentWorkspace from './AgentWorkspace';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
 type NewsItem = NewsCardItem & { accent: string };
@@ -127,6 +128,8 @@ export default function HomeDashboard() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{visibleNews.map((item, index) => <NewsCard compact item={item} key={`${item.id}-${index}`} />)}</div>
       <div className="mt-2 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} aria-current={slide === index ? 'true' : undefined} className="group grid h-5 w-6 place-items-center rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span className={`h-1 rounded-full transition-all ${slide === index ? 'w-5 bg-indigo-600' : 'w-1.5 bg-slate-300 group-hover:bg-indigo-400 dark:bg-slate-700'}`} /></button>)}</div>
     </section>
+
+    <AgentWorkspace />
 
       <section aria-labelledby="performance-heading" className="lg:col-span-2 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">12 month trend</p><h2 id="performance-heading" className="mt-1 text-xl font-extrabold">Sales performance</h2><p className="mt-1 text-xs text-slate-500">Closed volume across the company</p></div><span className="shrink-0 rounded-full bg-slate-50 px-3 py-1 text-[10px] font-semibold text-slate-700 dark:bg-slate-950 dark:text-slate-300">Preview · Last 12 months</span></div>
