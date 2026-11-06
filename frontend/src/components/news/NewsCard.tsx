@@ -17,7 +17,7 @@ export default function NewsCard({ item, compact = false }: { item: NewsCardItem
     <a
       href={item.href}
       title={item.title}
-      className={`news-article portal-interactive group flex min-w-0 flex-col rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-800 dark:bg-slate-900 ${compact ? 'min-h-0 gap-2 p-3' : 'min-h-52 gap-4 p-6'}`}
+      className={`portal-interactive group flex min-w-0 flex-col rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-800 dark:bg-slate-900 ${compact ? 'min-h-0 gap-2 p-3' : 'min-h-52 gap-4 p-6'}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-1 text-[10px] font-medium">
         <span className={`rounded-md px-2 py-1 font-semibold shadow-sm ${tagTone}`}>{category} news</span>
