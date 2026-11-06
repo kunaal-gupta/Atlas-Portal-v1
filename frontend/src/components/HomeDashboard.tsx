@@ -8,6 +8,7 @@ import AnnouncementStatus from './shared/AnnouncementStatus';
 import { parseNumbersPayload, reportingLabel, reportingDescription, formatReportingTime, type NumbersStatus } from '../lib/reporting';
 import { announcements } from '../data/announcements';
 import AgentWorkspace from './AgentWorkspace';
+import HomeFaq from './HomeFaq';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
 type NewsItem = NewsCardItem & { accent: string };
@@ -135,6 +136,7 @@ export default function HomeDashboard() {
     </section>
 
     <AgentWorkspace />
+    <HomeFaq />
 
 
   </div>;
