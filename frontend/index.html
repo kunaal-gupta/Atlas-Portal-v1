@@ -20,12 +20,6 @@
                 600: '#455b72', 700: '#30465d', 800: '#23384d',
                 900: '#1c2c3d', 950: '#142231'
               },
-              teal: {
-                50: '#f0f7f5', 100: '#deede7', 200: '#bddbd1',
-                300: '#99c4b5', 400: '#73aa98', 500: '#518c7a',
-                600: '#3e7464', 700: '#315d51', 800: '#294c43',
-                900: '#243f38', 950: '#142923'
-              },
               indigo: {
                 50: '#edf9fb', 100: '#d9f1f4', 200: '#afe1e8',
                 300: '#79ccd7', 400: '#42b2c3', 500: '#2097ab',
@@ -35,7 +29,7 @@
             },
             borderRadius: { lg: '0.875rem', xl: '1.125rem', '2xl': '1.75rem', '3xl': '2.125rem' },
             boxShadow: {
-              sm: '0 8px 28px rgb(18 29 45 / 0.06)',
+              sm: '0 4px 20px rgb(18 29 45 / 0.045)',
               md: '0 12px 36px rgb(18 29 45 / 0.09)',
               lg: '0 18px 48px rgb(18 29 45 / 0.11)',
               xl: '0 16px 40px rgb(35 55 80 / 0.10)',
@@ -58,12 +52,20 @@
         font-family: 'Manrope', sans-serif;
       }
       html { color-scheme: light; touch-action: auto; }
+      html { scroll-padding-top: 11rem; }
+      body { -webkit-font-smoothing: antialiased; }
+      button:not(:disabled), summary { cursor: pointer; }
+      button:disabled { cursor: not-allowed; }
+      .skip-link { position: fixed; top: 1rem; left: 1rem; z-index: 100; transform: translateY(-200%); border-radius: 1rem; padding: 0.75rem 1rem; background: #fff; color: #144654; box-shadow: 0 4px 20px rgb(18 29 45 / 0.16); }
+      .skip-link:focus { transform: translateY(0); }
+      #main-content:focus { outline: none; }
+      .category-section > div { max-width: none; margin: 0; padding: 0; }
       .portal-background {
-        background-image: radial-gradient(ellipse at 0% 0%, rgb(20 184 201 / 0.10), transparent 42%), radial-gradient(ellipse at 100% 18%, rgb(146 113 220 / 0.07), transparent 40%);
+        background-image: radial-gradient(ellipse 70% 32rem at 0% 5rem, rgb(17 126 145 / 0.075), transparent 75%), radial-gradient(ellipse 60% 28rem at 100% 8rem, rgb(35 56 77 / 0.035), transparent 75%), linear-gradient(180deg, #f0f4f7 0%, #f7f8fa 38rem, #f5f7f9 100%);
         background-repeat: no-repeat;
       }
       .dark .portal-background {
-        background-image: radial-gradient(ellipse at 0% 0%, rgb(20 184 201 / 0.08), transparent 42%), radial-gradient(ellipse at 100% 18%, rgb(146 113 220 / 0.06), transparent 40%);
+        background-image: radial-gradient(ellipse 70% 32rem at 0% 5rem, rgb(17 126 145 / 0.10), transparent 75%), radial-gradient(ellipse 60% 28rem at 100% 8rem, rgb(35 56 77 / 0.06), transparent 75%), linear-gradient(180deg, #142231 0%, #162332 38rem, #142231 100%);
       }
       .portal-interactive { position: relative; }
       a:focus-visible, button:focus-visible { outline: 2px solid #117e91; outline-offset: 3px; }

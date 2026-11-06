@@ -21,7 +21,7 @@ const IconTile = ({
     indigo:
       'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-300',
     pink:
-      'bg-pink-50 text-pink-600 dark:bg-pink-950/70 dark:text-pink-300',
+      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-300',
   };
 
   return (
@@ -79,13 +79,13 @@ export default function AgentCard({
         <span
           className={`absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] backdrop-blur ${
             active
-              ? 'border-emerald-100 bg-emerald-50/90 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/90 dark:text-emerald-300'
+              ? 'border-indigo-100 bg-indigo-50/90 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/90 dark:text-indigo-300'
               : 'border-slate-100 bg-white/90 text-slate-500 dark:border-slate-700 dark:bg-slate-800/90'
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              active ? 'bg-emerald-500' : 'bg-slate-400'
+              active ? 'bg-indigo-500' : 'bg-slate-400'
             }`}
           />
           {agent.status}
@@ -116,7 +116,7 @@ export default function AgentCard({
               href={`mailto:${agent.email}`}
               title={agent.email}
               aria-label={`Email ${agent.full_name}`}
-              className="grid h-8 w-8 place-items-center rounded-lg bg-blue-50 text-blue-600 outline-none transition hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-blue-950/70 dark:text-blue-300"
+              className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600 outline-none transition hover:bg-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-indigo-950/70 dark:text-indigo-300"
             >
               <Mail className="h-4 w-4" />
             </a>
@@ -126,7 +126,7 @@ export default function AgentCard({
                 href={`tel:${agent.phone_number}`}
                 title={agent.phone_number}
                 aria-label={`Call ${agent.full_name}`}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600 outline-none transition hover:bg-emerald-100 focus-visible:ring-2 focus-visible:ring-emerald-500 dark:bg-emerald-950/70 dark:text-emerald-300"
+                className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600 outline-none transition hover:bg-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-indigo-950/70 dark:text-indigo-300"
               >
                 <Phone className="h-4 w-4" />
               </a>
@@ -148,7 +148,7 @@ export default function AgentCard({
 
           {agent.location && (
             <div className="mt-1 flex shrink-0 items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-              <MapPin className="h-3.5 w-3.5 text-pink-500" />
+              <MapPin className="h-3.5 w-3.5 text-indigo-500" />
               <span className="max-w-[120px] truncate">
                 {agent.location}
               </span>

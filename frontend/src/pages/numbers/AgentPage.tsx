@@ -156,7 +156,7 @@ export default function AgentPage() {
                   <span
                     className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wide ${
                       agent.status.toLowerCase() === 'active'
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950'
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
                     }`}
                   >
@@ -178,7 +178,7 @@ export default function AgentPage() {
         title="Agent"
         description="Your company directory, production contacts, and agent information."
         icon={Users}
-        accent="from-blue-600 to-cyan-500"
+        accent="from-indigo-600 to-indigo-500"
       />
 
       <section className="mt-7">
