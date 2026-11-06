@@ -1,19 +1,11 @@
+import { useCompanyReporting } from './CompanyReporting';
 import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { formatReportingTime, parseNumbersPayload, reportingDescription, reportingLabel, type NumbersPayload, type NumbersStatus } from '../lib/reporting';
+import { formatReportingTime, reportingDescription, reportingLabel } from '../lib/reporting';
 
 export default function WelcomeMetrics() {
-  const [numbers, setNumbers] = useState<NumbersPayload>({ activeListings: 86, pendingTransactions: 31, closedThisMonth: 47, salesVolume: 28400000 });
-  const [status, setStatus] = useState<NumbersStatus>({ mode: 'loading' });
+  const { numbers, status } = useCompanyReporting();
   const [active, setActive] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/skyslope/numbers/').then(response => response.ok ? response.json() : Promise.reject()).then(raw => {
-      const value = parseNumbersPayload(raw);
-      if (!cancelled) { setNumbers(value); setStatus({ mode: value.dataMode || 'snapshot', updatedAt: value.updatedAt, fetchedAt: new Date().toISOString() }); }
-    }).catch(() => { if (!cancelled) setStatus({ mode: 'demo' }); });
-    return () => { cancelled = true; };
-  }, []);
   useEffect(() => {
     const close = (event: PointerEvent) => { if (!(event.target instanceof Element) || !event.target.closest('[data-welcome-metric]')) setActive(null); };
     document.addEventListener('pointerdown', close);

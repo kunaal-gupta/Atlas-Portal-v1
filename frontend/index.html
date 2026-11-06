@@ -81,6 +81,8 @@
       .home-section-title { font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.015em; }
       .home-page #news > div > a { border-radius: 12px; box-shadow: none; border-color: #E2E8F0; }
       .dark .home-page #news > div > a { border-color: #30465d; }
+      @keyframes news-slide-in { from { opacity: 0.5; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+      @media (prefers-reduced-motion: no-preference) { .news-slide { animation: news-slide-in 350ms ease-out; } }
       .portal-interactive { position: relative; }
       a:focus-visible, button:focus-visible { outline: 2px solid #087F91; outline-offset: 3px; }
       @media (prefers-reduced-motion: no-preference) {

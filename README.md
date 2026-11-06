@@ -163,16 +163,24 @@ The optional `/api/skyslope/numbers/` response supports `dataMode: "live" | "cac
 
 Announcement deadlines in `frontend/src/data/announcements.ts` require a verified ISO date (`dueDate`, e.g. `2026-09-30`) and `deadlineVerified: true` before they can be marked overdue. Date boundaries use America/Edmonton. The original September 30 FINTRAC sample has no confirmed year and remains unverified; its Review now link opens the existing FINTRAC resource page, not an acknowledgement-submission workflow.
 
-## My Atlas, neighbourhood research, and support
+## Neighbourhood research, support, and retained workspace data
 
-Apply migrations (`python backend/manage.py migrate`) before running this version. My Atlas stores bookmarks, saved-file references, the last five opened pages/files, and a self-tracked training checklist against the authenticated account. Saved files remain links to the original files; they are not copied or granted additional permissions. Tool favourites continue to use the existing account-scoped browser preferences, as labelled in the UI. Training checkboxes are personal learning notes, not verified course or compliance completion.
+Apply migrations (`python backend/manage.py migrate`) before running this version. The My Atlas interface has been removed, including its personal-performance placeholder, bookmark controls, training checklist, and recent-activity collection. Existing account-backed workspace records and APIs are retained without deleting user data. Toolkit preferences remain account-scoped browser settings.
 
 - `GET /api/workspace/` reads the current user's saved resources, recent activity, and training checklist.
 - `POST /api/workspace/` accepts `url`, `title`, `kind` (`page`/`file`), and optional `saved`. Without `saved`, it records a visit; with `saved`, it saves/removes a bookmark without marking a visit.
 - `POST /api/workspace/training/` accepts a known training `course` and boolean `completed`.
 - `GET/POST /api/support/` lists the current agent's requests or submits a new request. List filters: `department`, `status`, `page`.
-- `GET/POST /api/support/<id>/` reads the request history or adds a message. Superusers can also update `status` and view all requests; ordinary write/calendar permission does not grant access to other agents' requests. Department is a queue classification, not an email notification. No email is sent by this workflow. Support administrators work through My Atlas → Support Desk.
+- `GET/POST /api/support/<id>/` reads the request history or adds a message. Superusers can also update `status` and view all requests; ordinary write/calendar permission does not grant access to other agents' requests. Department is a queue classification, not an email notification. No email is sent by this workflow. Support administrators work through the Agent Support Desk link in the footer.
 
-Neighbourhood Intelligence starts with six curated Edmonton community profiles and links to school boards, City maps/projects, market research, maps, and listings. It is not a live market or construction feed or a complete regional directory. Personal Performance is explicitly planned and does not display private transaction figures until an authorized reporting integration and agent mapping are implemented.
+Neighbourhood Intelligence starts with six curated Edmonton community profiles and links to school boards, City maps/projects, market research, maps, and listings. It is not a live market or construction feed or a complete regional directory. Individual performance reporting is not connected.
 
 Backend verification: `python backend/manage.py test apps.content` includes request ownership, disabled-user access, administrator-only status changes, history, pagination, workspace isolation, URL validation, and training validation.
+
+The Support Desk is accessible in the footer.
+
+FAQ is available at `/faq/` from the footer, alongside Agent Support Desk, rather than on the homepage.
+
+Homepage Business Insights shares one reporting response with the welcome metrics. It derives average closed-deal value from monthly volume/closed count and compares active inventory with pending transaction workload. Demo data remains explicitly labelled; no historical trends, forecasts, or conversion rates are inferred.
+
+The three-card news carousel advances every six seconds when additional items are available. Hover, keyboard focus, explicit pause, hidden tabs, and reduced-motion preferences pause automatic rotation; arrows and page controls remain available.
