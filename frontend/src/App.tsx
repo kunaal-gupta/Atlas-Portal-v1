@@ -5,6 +5,11 @@ import { AuthContext, usePortalUser } from './components/auth/AuthContext';
 import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar, { categoryPath, type NavigationGroup } from './components/layout/Sidebar';
+import MyAtlasPage from './pages/workspace/MyAtlasPage';
+import PersonalPerformancePage from './pages/workspace/PersonalPerformancePage';
+import SupportDeskPage from './pages/workspace/SupportDeskPage';
+import IntelligencePage from './pages/neighbourhood/IntelligencePage';
+import WorkspaceTracker from './components/WorkspaceTracker';
 import HomeDashboard from './components/HomeDashboard';
 import WelcomeMetrics from './components/WelcomeMetrics';
 import RequiredActionBanner from './components/RequiredActionBanner';
@@ -34,6 +39,10 @@ import ComplianceTipsPage from './pages/compliance/TipsPage';
 import OtherPage from './pages/compliance/OtherPage';
 
 const routes: Record<string, React.ComponentType> = {
+  '/my-atlas/': MyAtlasPage,
+  '/my-atlas/performance/': PersonalPerformancePage,
+  '/support/': SupportDeskPage,
+  '/neighbourhoods/intelligence/': IntelligencePage,
   '/the-numbers/calculators/': CalculatorsPage,
   '/the-numbers/market/': MarketPage, '/the-numbers/agent/': AgentPage, '/the-numbers/firm/': FirmPage,
   '/training/new-agent/': NewAgentPage, '/training/new-construction/': NewConstructionPage, '/training/on-going/': OngoingPage,
@@ -44,11 +53,12 @@ const routes: Record<string, React.ComponentType> = {
 };
 
 const navigation: NavigationGroup[] = [
+  { name: 'My Atlas', links: [{ name: 'My workspace', path: '/my-atlas/' }, { name: 'Personal performance', path: '/my-atlas/performance/' }, { name: 'Support Desk', path: '/support/' }] },
   { name: 'The Numbers', links: [['Market','/the-numbers/market/'],['Agent','/the-numbers/agent/'],['Firm','/the-numbers/firm/'],['Calculators','/the-numbers/calculators/']].map(([name,path]) => ({name,path})) },
   { name: 'Training', links: [['New Agent','/training/new-agent/'],['New Construction','/training/new-construction/'],['On-Going','/training/on-going/']].map(([name,path]) => ({name,path})) },
   { name: 'Resources', links: [['Trade Partners','/resources/trade-partners/'],['Condo','/resources/condo/'],['General','/resources/general/'],['Tips','/resources/tips/'],['News & Events','/resources/news-and-events/'],['Calendar','/resources/calendar/']].map(([name,path]) => ({name,path})) },
   { name: 'Marketing', links: [['Logos','/marketing/logos/'],['Brand Book Summary','/marketing/brand-book-summary/'],['Templates','/marketing/templates/'],['Canva Link','/marketing/canva-link/']].map(([name,path]) => ({name,path})) },
-  { name: 'Neighbourhoods', links: [['HoodQ','/neighbourhoods/hoodq/'],['Schools, Shopping, Hospitals','/neighbourhoods/schools-shopping-hospitals/']].map(([name,path]) => ({name,path})) },
+  { name: 'Neighbourhoods', links: [['Neighbourhood Intelligence','/neighbourhoods/intelligence/'],['HoodQ','/neighbourhoods/hoodq/'],['Schools, Shopping, Hospitals','/neighbourhoods/schools-shopping-hospitals/']].map(([name,path]) => ({name,path})) },
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
@@ -77,5 +87,5 @@ export default function App() {
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
   const category = navigation.find(group => categoryPath(group) === window.location.pathname);
-  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}><WorkspaceTracker />{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }

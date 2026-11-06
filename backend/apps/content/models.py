@@ -239,3 +239,61 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class WorkspaceEntry(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    url = models.CharField(max_length=2000)
+    title = models.CharField(max_length=255)
+    kind = models.CharField(max_length=4, choices=[('page', 'Page'), ('file', 'File')])
+    saved = models.BooleanField(default=False)
+    accessed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'url'], name='workspace_user_url')]
+
+
+class TrainingProgress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course = models.CharField(max_length=30, choices=[('new-agent', 'New Agent'), ('new-construction', 'New Construction'), ('on-going', 'On-Going')])
+    completed = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'course'], name='training_user_course')]
+
+
+class SupportRequest(models.Model):
+    class Department(models.TextChoices):
+        MARKETING = 'marketing', 'Marketing'
+        ACCOUNTING = 'accounting', 'Accounting'
+        CONVEYANCING = 'conveyancing', 'Conveyancing'
+        IT = 'it', 'IT'
+
+    class Status(models.TextChoices):
+        OPEN = 'open', 'Open'
+        IN_PROGRESS = 'in_progress', 'In progress'
+        WAITING = 'waiting', 'Waiting on agent'
+        RESOLVED = 'resolved', 'Resolved'
+
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    department = models.CharField(max_length=20, choices=Department.choices)
+    subject = models.CharField(max_length=160)
+    description = models.TextField(max_length=5000)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at', '-id']
+
+
+class SupportUpdate(models.Model):
+    request = models.ForeignKey(SupportRequest, related_name='updates', on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField(max_length=5000, blank=True)
+    status = models.CharField(max_length=20, choices=SupportRequest.Status.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
