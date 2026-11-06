@@ -33,10 +33,10 @@
                 900: '#144654', 950: '#092d37'
               }
             },
-            borderRadius: { lg: '0.5rem', xl: '0.625rem', '2xl': '0.75rem', '3xl': '0.75rem' },
+            borderRadius: { lg: '0.5rem', xl: '1rem', '2xl': '1.5rem', '3xl': '2rem' },
             boxShadow: {
-              sm: '0 4px 20px rgb(18 29 45 / 0.045)',
-              md: '0 12px 36px rgb(18 29 45 / 0.09)',
+              sm: '0 10px 32px rgb(18 29 45 / 0.055)',
+              md: '0 18px 48px rgb(18 29 45 / 0.10)',
               lg: '0 18px 48px rgb(18 29 45 / 0.11)',
               xl: '0 16px 40px rgb(35 55 80 / 0.10)',
               '2xl': '0 24px 56px rgb(35 55 80 / 0.12)'
@@ -60,7 +60,7 @@
       h1, h2, h3, h4 { color: #101827; }
       .dark h1, .dark h2, .dark h3, .dark h4 { color: #e2e8f0; }
       html { color-scheme: light; touch-action: auto; }
-      html { scroll-padding-top: 11rem; }
+      html { scroll-padding-top: calc(var(--portal-navigation-bottom, 129px) + var(--portal-section-navigation-height, 0px) + 16px); }
       body { -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.6; }
       .text-xs, [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"] { font-size: 12px; line-height: 1.5; }
       .uppercase { letter-spacing: 0.06em; }
@@ -73,7 +73,7 @@
       .category-section > div { max-width: none; margin: 0; padding: 0; }
       .portal-background { background-color: #F3F5F9; background-image: none; }
       .dark .portal-background { background-color: #142231; background-image: none; }
-      .welcome-surface { background: linear-gradient(105deg, #E8F5F6 0%, #f4fafb 48%, #ffffff 100%); border: 1px solid #E2E8F0; border-radius: 12px; }
+      .welcome-surface { background: linear-gradient(105deg, #E8F5F6 0%, #f4fafb 48%, #ffffff 100%); border: 1px solid transparent; border-radius: 24px; }
       .dark .welcome-surface { background: linear-gradient(105deg, #14363b 0%, #1c2c3d 80%); border-color: #30465d; }
       .portal-interactive { position: relative; }
       a:focus-visible, button:focus-visible { outline: 2px solid #087F91; outline-offset: 3px; }
