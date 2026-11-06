@@ -48,13 +48,13 @@ export default function AgentWorkspace() {
 
   return <section aria-labelledby="workspace-heading" className="min-w-0 lg:col-span-2">
     <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 id="workspace-heading" className="text-xl font-bold">Your workspace</h2><p className="text-xs text-slate-500 dark:text-slate-400">Personalized tools and resources</p></div>
-    <section aria-labelledby="toolkit-heading" className={panel} onKeyDown={event => { if (editing && event.key === 'Escape') { event.stopPropagation(); closeCustomize(); } }}>
-      <div className="mb-3 flex items-center justify-between gap-3"><h3 id="toolkit-heading" className="text-lg font-semibold">Quick access / Agent toolkit</h3><button ref={customize} type="button" onClick={editing ? closeCustomize : openCustomize} aria-expanded={editing} aria-controls="toolkit-customization" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300"><Settings2 className="h-4 w-4" />{editing ? 'Close' : 'Customize'}</button></div>
+    <section aria-labelledby="toolkit-heading" className={`${panel} !p-3 sm:!p-4`} onKeyDown={event => { if (editing && event.key === 'Escape') { event.stopPropagation(); closeCustomize(); } }}>
+      <div className="mb-2 flex items-center justify-between gap-3"><h3 id="toolkit-heading" className="text-lg font-semibold">Quick access / Agent toolkit</h3><button ref={customize} type="button" onClick={editing ? closeCustomize : openCustomize} aria-expanded={editing} aria-controls="toolkit-customization" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300"><Settings2 className="h-4 w-4" />{editing ? 'Close' : 'Customize'}</button></div>
       {!favorites.length && <p className="py-3 text-sm text-slate-500">Choose your favorite tools with Customize.</p>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">{favorites.map(tool => {
         const Icon = icons[tool.id as keyof typeof icons] || FileText;
         const content = <><Icon className="h-5 w-5 text-indigo-600 dark:text-indigo-300" /><span className="text-sm font-semibold">{tool.name}</span>{!tool.href && <span className="text-xs text-indigo-700 dark:text-indigo-300">Set link</span>}{tool.id === 'skyslope' && tool.href.includes('google.com/search') && <span className="text-xs text-slate-500">Search shortcut</span>}</>;
-        const style = 'portal-interactive flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg px-2 py-3 text-center hover:bg-indigo-50 dark:hover:bg-indigo-950';
+        const style = 'portal-interactive flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-center hover:bg-indigo-50 dark:hover:bg-indigo-950';
         return tool.href ? <a key={tool.id} href={tool.href} target={tool.href.startsWith('/') ? undefined : '_blank'} rel="noreferrer" className={style}>{content}</a> : <button key={tool.id} type="button" onClick={openCustomize} className={style}>{content}</button>;
       })}</div>
       {editing && <form id="toolkit-customization" className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700" onSubmit={event => {
