@@ -1,5 +1,5 @@
 import { ArrowRight, LoaderCircle, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getSession, type PortalUser } from './api/auth';
 import { AuthContext, usePortalUser } from './components/auth/AuthContext';
 import LoginPage from './components/auth/LoginPage';
@@ -53,17 +53,43 @@ const navigation: NavigationGroup[] = [
 
 const workspacePages = navigation.flatMap(group => [{ name: group.name, path: categoryPath(group) }, ...group.links]);
 
+const dashboardSections = [['numbers', 'Overview'], ['news', 'News & updates'], ['agent-toolkit', 'Agent toolkit'], ['upcoming-events', 'Upcoming events'], ['recent-resources', 'Resources'], ['faq', 'FAQ']];
+
 function HomePage() {
   const user = usePortalUser();
+  const [activeSection, setActiveSection] = useState('numbers');
+  const sectionNavigation = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const element = sectionNavigation.current;
+    if (!element) return;
+    const update = () => document.documentElement.style.setProperty('--portal-section-navigation-height', `${element.offsetHeight}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => { observer.disconnect(); document.documentElement.style.removeProperty('--portal-section-navigation-height'); };
+  }, []);
+  useEffect(() => {
+    const sync = () => {
+      const id = window.location.hash.slice(1);
+      setActiveSection(dashboardSections.some(([target]) => target === id) ? id : 'numbers');
+    };
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
   const displayName = user?.name.trim() || '';
   const firstName = displayName.includes('@')
     ? (displayName.toLowerCase() === 'kunaalgupta@hotmail.com' ? 'Kunaal' : displayName.split('@')[0].split(/[._-]/)[0].replace(/^./, letter => letter.toUpperCase()))
     : displayName.split(/\s+/)[0];
   return <div className="mx-auto max-w-[1500px] px-5 pb-5 pt-2 lg:px-10">
     <section aria-label="Welcome" className="welcome-surface flex flex-wrap items-center justify-between gap-3 px-4 py-2">
-      <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-slate-950 dark:text-white">Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
+      <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-[28px] font-extrabold leading-9 lg:text-[32px] lg:leading-10 tracking-tight text-slate-950 dark:text-white">Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
       <div className="flex flex-wrap gap-2"><a href="/resources/calendar/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Calendar</a><a href="/the-numbers/agent/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Agent directory</a><a href="/the-numbers/market/" className="portal-interactive inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700">Explore market <ArrowRight className="h-4 w-4" /></a></div>
     </section>
+    <nav ref={sectionNavigation} aria-label="Dashboard sections" className="sticky top-[var(--portal-navigation-bottom,129px)] z-20 my-3 rounded-2xl border border-white/80 bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:rounded-full">
+      <label className="flex min-h-10 items-center gap-3 px-3 text-sm font-semibold text-slate-600 dark:text-slate-300 sm:hidden">Jump to<select aria-label="Dashboard section" value={activeSection} onChange={event => { setActiveSection(event.target.value); window.location.hash = event.target.value; }} className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-indigo-700 dark:text-indigo-300">{dashboardSections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
+      <div className="hidden flex-wrap items-center gap-1 sm:flex">{dashboardSections.map(([id, label]) => <a key={id} href={`#${id}`} onClick={() => setActiveSection(id)} aria-current={activeSection === id ? 'location' : undefined} className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold transition-colors ${activeSection === id ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>{label}</a>)}</div>
+    </nav>
     <HomeDashboard />
   </div>;
 }

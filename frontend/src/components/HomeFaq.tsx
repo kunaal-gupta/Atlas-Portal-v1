@@ -12,7 +12,7 @@ const questions = [
 ];
 
 export default function HomeFaq() {
-  return <section aria-labelledby="faq-heading" className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-4 dark:border-slate-700 dark:bg-slate-900 sm:px-5 lg:col-span-2">
+  return <section id="faq" aria-labelledby="faq-heading" className="min-w-0 rounded-3xl border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:px-5 lg:col-span-2">
     <div className="mb-3 flex items-start gap-3"><CircleHelp aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-300" /><div><h2 id="faq-heading" className="text-xl font-bold">Frequently asked questions</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Quick answers to common portal questions.</p></div></div>
     <div className="divide-y divide-slate-100 dark:divide-slate-700">{questions.map(item => <details key={item.id} id={`faq-${item.id}`} name="homepage-faq" className="group">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 text-sm font-semibold text-slate-800 hover:text-indigo-700 dark:text-slate-100 dark:hover:text-indigo-300"><span>{item.question}</span><ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400 motion-safe:transition-transform group-open:rotate-180" /></summary>
