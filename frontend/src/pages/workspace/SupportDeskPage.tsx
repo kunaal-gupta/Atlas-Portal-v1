@@ -2,7 +2,7 @@ import { LifeBuoy, Plus, Send } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ResourcePage from '../../components/shared/ResourcePage';
 import { usePortalUser } from '../../components/auth/AuthContext';
-import { portalRequest } from '../../api/workspace';
+import { portalRequest } from '../../api/portal';
 
 type Ticket = { id: number; department: string; subject: string; description: string; status: string; requester: string; created_at: string; updated_at: string; updates?: { id: number; author: string; message: string; status: string; created_at: string }[] };
 const departments = { marketing: 'Marketing', accounting: 'Accounting', conveyancing: 'Conveyancing', it: 'IT' };
