@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ArrowRight, BellRing, Building2, ChevronDown, ChevronLeft, ChevronRight,
+  ArrowRight, BellRing, Building2, ChevronLeft, ChevronRight,
   CircleDollarSign, Home, RefreshCw, TrendingUp,
 } from 'lucide-react';
 import { getNews } from '../api/news';
+import { announcements } from '../data/announcements';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
 type NewsItem = NewsCardItem & { accent: string };
@@ -25,11 +26,7 @@ const fallbackNews: NewsItem[] = [
 
 const fallbackNumbers: SkySlopeNumbers = { activeListings: 86, pendingTransactions: 31, closedThisMonth: 47, salesVolume: 28400000 };
 
-const announcements = [
-  { id: '1', label: 'Action required', title: 'Complete your annual FINTRAC acknowledgement', detail: 'Please review the updated brokerage guidance and submit your acknowledgement by September 30.', time: 'Due Sep 30', urgent: true },
-  { id: '2', label: 'Office update', title: 'Downtown office access this Saturday', detail: 'The east entrance will be closed for scheduled maintenance. Please use the main lobby entrance.', time: '2 days ago', urgent: false },
-  { id: '3', label: 'Reminder', title: 'October content requests close Friday', detail: 'Send campaign and design requests to the marketing team before 4:00 PM on Friday.', time: '3 days ago', urgent: false },
-];
+
 
 const formatCurrency = (value: number) => `$${new Intl.NumberFormat('en-CA', { notation: 'compact', maximumFractionDigits: 1 }).format(value)}`;
 
@@ -76,6 +73,7 @@ export default function HomeDashboard() {
   }, []);
 
   const visibleNews = [0, 1, 2].map((offset) => news[(slide + offset) % news.length]);
+  const priorityAnnouncement = announcements.find(item => item.urgent) ?? announcements[0];
   const metrics = [
     { label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Live inventory', description: 'Properties currently listed for sale across the company.' },
     { label: 'Pending', value: numbers.pendingTransactions.toLocaleString(), icon: TrendingUp, note: 'Transactions', description: 'Transactions with an accepted offer that have not yet closed.' },
@@ -83,15 +81,15 @@ export default function HomeDashboard() {
     { label: 'Sales volume', value: formatCurrency(numbers.salesVolume), icon: CircleDollarSign, note: 'Month to date', description: 'Total closed sales volume for the current month.' },
   ];
 
-  return <div className="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  return <div className="mt-2 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
     <div className="min-w-0 space-y-3">
 
-    <section aria-labelledby="numbers-heading" className="flex min-w-0 flex-col lg:min-h-64 rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-2xl border-b border-indigo-100 bg-white px-4 py-2 dark:border-slate-800 dark:bg-indigo-950/40">
+    <section aria-labelledby="numbers-heading" className="flex min-w-0 flex-col rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-2xl border-b border-indigo-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-indigo-950/40">
         <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 dark:bg-indigo-950"><TrendingUp className="h-4 w-4" /></span><div><h2 id="numbers-heading" className="text-xl font-bold">The numbers</h2><p className="text-xs text-slate-500">Company performance at a glance</p></div></div>
         <span className="flex items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-500 dark:bg-slate-800"><span className={`h-2 w-2 rounded-full ${numbersLive ? 'bg-indigo-500' : 'bg-slate-400'}`} />{numbersLive ? 'Live from SkySlope' : 'SkySlope preview data'} <RefreshCw className="h-3.5 w-3.5" /></span>
       </div>
-      <div className="grid flex-1 grid-cols-2 items-center gap-2 p-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 px-2 py-3 lg:grid-cols-4">
         {metrics.map(({ label, value, icon: Icon, note, description }, index) => {
           const expanded = activeMetric === label;
           return <div key={label} data-metric onPointerEnter={event => { if (event.pointerType === 'mouse') showMetric(label, event.currentTarget); }} onPointerLeave={event => { if (event.pointerType === 'mouse') setActiveMetric(null); }} className={`relative min-w-0 ${expanded ? 'z-20' : ''}`}>
@@ -119,14 +117,10 @@ export default function HomeDashboard() {
 
     </div>
 
-      <div className="min-w-0 lg:relative lg:self-stretch">
-      <section id="announcements" aria-labelledby="announcements-heading" className="flex min-h-0 min-w-0 max-h-80 flex-col overflow-hidden lg:absolute lg:inset-0 lg:max-h-none lg:min-h-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-2 flex shrink-0 items-center justify-between"><div className="flex min-w-0 flex-wrap items-center gap-2"><span className="relative grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-950"><BellRing className="h-5 w-5" /><span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-slate-500 dark:border-slate-900" /></span><div><h2 id="announcements-heading" className="text-xl font-bold">Announcements</h2><p className="text-xs text-slate-500">{announcements.length} updates for you</p></div></div></div>
-        <div role="region" aria-label="Announcement updates" tabIndex={0} className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 divide-y divide-slate-100 dark:divide-slate-800">{announcements.map((item, index) => <details key={item.id} open={index === 0} className="group py-3 first:pt-1"><summary className="flex cursor-pointer list-none items-start gap-2 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.urgent ? 'bg-slate-500' : 'bg-indigo-400'}`} /><span className="min-w-0 flex-1"><span className={`text-[10px] font-black uppercase tracking-wider ${item.urgent ? 'text-slate-600' : 'text-indigo-600 dark:text-indigo-400'}`}>{item.label}</span><span className="mt-1 block text-sm font-semibold leading-5 text-slate-700 dark:text-slate-200">{item.title}</span><span className="mt-1 block text-[11px] text-slate-400">{item.time}</span></span><ChevronDown className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" /></summary><p className="ml-5 mt-3 border-l-2 border-slate-100 pl-4 text-sm leading-6 text-slate-500 dark:border-slate-800 dark:text-slate-400">{item.detail}</p></details>)}</div>
-        <a href="/resources/news-and-events/" className="mt-3 flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-white py-3 text-xs font-bold text-indigo-800 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-slate-800 dark:text-slate-300">View all announcements <ArrowRight className="h-3.5 w-3.5" /></a>
-      </section>
-
-      </div>
+    <section id="announcements" aria-labelledby="announcements-heading" className="min-w-0 self-stretch rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-indigo-600 dark:text-indigo-300" /><h2 id="announcements-heading" className="text-xl font-bold">Announcements</h2></div><a href="/resources/news-and-events/#announcements-list" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline dark:text-indigo-300">View all ({announcements.length})<ArrowRight className="h-3.5 w-3.5" /></a></div>
+      {priorityAnnouncement && <article aria-label="Priority announcement"><p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">{priorityAnnouncement.label}</p><h3 className="mt-1 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{priorityAnnouncement.title}</h3><p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{priorityAnnouncement.time}</p></article>}
+    </section>
 
     <section aria-labelledby="news-heading" className="min-w-0 lg:col-span-2">
       <div className="mb-3 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">Latest updates</p><h2 id="news-heading" className="mt-1 text-xl font-bold tracking-tight">News for your business</h2></div><div className="flex gap-2"><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>

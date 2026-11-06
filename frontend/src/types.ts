@@ -48,4 +48,5 @@ export interface PageDefinition {
   icon: ElementType;
   accent: string;
   children?: ReactNode;
+  intro?: ReactNode;
 }

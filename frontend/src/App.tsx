@@ -54,9 +54,9 @@ function HomePage() {
   const firstName = displayName.includes('@')
     ? (displayName.toLowerCase() === 'kunaalgupta@hotmail.com' ? 'Kunaal' : displayName.split('@')[0].split(/[._-]/)[0].replace(/^./, letter => letter.toUpperCase()))
     : displayName.split(/\s+/)[0];
-  return <div className="mx-auto max-w-[1500px] px-5 pb-5 pt-3 lg:px-10">
-    <section className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
-      <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
+  return <div className="mx-auto max-w-[1500px] px-5 pb-5 pt-2 lg:px-10">
+    <section aria-label="Welcome" className="flex flex-wrap items-center justify-between gap-3 px-1 py-2">
+      <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-[28px] font-extrabold leading-9 tracking-tight text-slate-950 dark:text-white">Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
       <div className="flex flex-wrap gap-2"><a href="/resources/calendar/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Calendar</a><a href="/the-numbers/agent/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Agent directory</a><a href="/the-numbers/market/" className="portal-interactive inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700">Explore market <ArrowRight className="h-4 w-4" /></a></div>
     </section>
     <HomeDashboard />
