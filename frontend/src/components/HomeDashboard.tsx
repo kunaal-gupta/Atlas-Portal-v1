@@ -82,10 +82,10 @@ export default function HomeDashboard() {
   const visibleNews = [0, 1, 2].map((offset) => news[(slide + offset) % news.length]);
   const priorityAnnouncement = announcements.find(item => item.urgent) ?? announcements[0];
   const metrics = [
-    { tone: 'bg-indigo-50/80 border-indigo-100 dark:bg-indigo-950/40 dark:border-indigo-900', iconTone: 'text-indigo-700 dark:text-indigo-300', label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Listed properties', description: 'Properties currently listed for sale across the company.' },
-    { tone: 'bg-amber-50/80 border-amber-100 dark:bg-amber-950/30 dark:border-amber-900', iconTone: 'text-amber-700 dark:text-amber-300', label: 'Pending', value: numbers.pendingTransactions.toLocaleString(), icon: TrendingUp, note: 'Transactions', description: 'Transactions with an accepted offer that have not yet closed.' },
-    { tone: 'bg-indigo-100/40 border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-900', iconTone: 'text-indigo-700 dark:text-indigo-300', label: 'Closed this month', value: numbers.closedThisMonth.toLocaleString(), icon: Building2, note: 'Company wide', description: 'Transactions completed across the company this month.' },
-    { tone: 'bg-slate-100/70 border-slate-200 dark:bg-slate-800 dark:border-slate-700', iconTone: 'text-slate-700 dark:text-slate-200', label: 'Sales volume', value: formatCurrency(numbers.salesVolume), icon: CircleDollarSign, note: 'Month to date', description: 'Total closed sales volume for the current month.' },
+    { label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Listed properties', description: 'Properties currently listed for sale across the company.' },
+    { label: 'Pending', value: numbers.pendingTransactions.toLocaleString(), icon: TrendingUp, note: 'Transactions', description: 'Transactions with an accepted offer that have not yet closed.' },
+    { label: 'Closed this month', value: numbers.closedThisMonth.toLocaleString(), icon: Building2, note: 'Company wide', description: 'Transactions completed across the company this month.' },
+    { label: 'Sales volume', value: formatCurrency(numbers.salesVolume), icon: CircleDollarSign, note: 'Month to date', description: 'Total closed sales volume for the current month.' },
   ];
 
   return <div className="mt-2 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -97,7 +97,7 @@ export default function HomeDashboard() {
         <div className="min-w-0 text-xs"><details><summary className="flex cursor-pointer list-none items-center gap-1.5 font-semibold text-indigo-700 dark:text-indigo-300"><Info className="h-3.5 w-3.5" />{reportingLabel(numbersStatus)}</summary><p className="mt-2 max-w-md text-xs leading-5 text-slate-500 dark:text-slate-400">{reportingDescription(numbersStatus)}{numbersStatus.fetchedAt && <span className="mt-1 block">Retrieved: {formatReportingTime(numbersStatus.fetchedAt)} (browser time zone).</span>}</p></details><p className="mt-1 text-slate-500 dark:text-slate-400">Last updated: {numbersStatus.mode === 'demo' || numbersStatus.mode === 'loading' ? 'Not applicable — illustrative figures' : formatReportingTime(numbersStatus.updatedAt)}</p></div>
       </div>
       <div className="grid grid-cols-2 gap-2 rounded-3xl border border-slate-100 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:grid-cols-4">
-        {metrics.map(({ label, value, icon: Icon, note, description, tone, iconTone }, index) => {
+        {metrics.map(({ label, value, icon: Icon, note, description }, index) => {
           const expanded = activeMetric === label;
           return <div key={label} data-metric onPointerEnter={event => { if (event.pointerType === 'mouse') showMetric(label, event.currentTarget); }} onPointerLeave={event => { if (event.pointerType === 'mouse') setActiveMetric(null); }} className={`relative min-w-0 ${expanded ? 'z-20' : ''}`}>
             <button
@@ -109,9 +109,9 @@ export default function HomeDashboard() {
               onBlur={() => setActiveMetric(null)}
               onClick={event => showMetric(label, event.currentTarget)}
               onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setActiveMetric(null); } }}
-              className={`flex h-full w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 motion-safe:transition-[background-color,box-shadow,transform] motion-safe:duration-200 motion-safe:active:scale-[0.98] ${tone} ${expanded ? 'shadow-md motion-safe:scale-[1.02]' : 'shadow-sm'}`}
+              className={`flex h-full w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 motion-safe:transition-[background-color,box-shadow,transform] motion-safe:duration-200 motion-safe:active:scale-[0.98] bg-indigo-50 border-indigo-100 dark:bg-indigo-950/40 dark:border-indigo-900 ${expanded ? 'shadow-md motion-safe:scale-[1.02]' : 'shadow-sm'}`}
             >
-              <Icon className={`mt-1 h-5 w-5 shrink-0 ${iconTone}`} />
+              <Icon className="mt-1 h-5 w-5 shrink-0 text-indigo-700 dark:text-indigo-300" />
               <span className="min-w-0"><span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">{label}</span><span className="mt-1 block break-words text-xl font-bold tabular-nums tracking-tight">{value}</span><span className="mt-0.5 block text-[10px] text-slate-500 dark:text-slate-400">{note}</span></span>
             </button>
             {expanded && <div id={`metric-detail-${index}`} role="tooltip" className={`absolute ${tooltipAbove ? 'bottom-full' : 'top-full'} z-50 w-56 max-w-[calc(100vw-3rem)] rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-5 text-white shadow-lg ${index % 2 ? 'right-0 lg:left-0 lg:right-auto' : 'left-0'} ${index === 3 ? 'lg:!left-auto lg:!right-0' : ''}`}>

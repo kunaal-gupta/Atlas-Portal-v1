@@ -1,4 +1,4 @@
-import { ArrowRight, LoaderCircle, Sparkles } from 'lucide-react';
+import { BarChart3, CalendarDays, LoaderCircle, Sparkles, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getSession, type PortalUser } from './api/auth';
 import { AuthContext, usePortalUser } from './components/auth/AuthContext';
@@ -6,7 +6,6 @@ import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar, { categoryPath, type NavigationGroup } from './components/layout/Sidebar';
 import HomeDashboard from './components/HomeDashboard';
-import WorkspaceTracker from './components/WorkspaceTracker';
 import CategoryOverview from './components/shared/CategoryOverview';
 import MarketPage from './pages/numbers/MarketPage';
 import AgentPage from './pages/numbers/AgentPage';
@@ -51,8 +50,6 @@ const navigation: NavigationGroup[] = [
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
-const workspacePages = navigation.flatMap(group => [{ name: group.name, path: categoryPath(group) }, ...group.links]);
-
 function HomePage() {
   const user = usePortalUser();
   const displayName = user?.name.trim() || '';
@@ -62,7 +59,7 @@ function HomePage() {
   return <div className="mx-auto max-w-[1500px] px-5 pb-5 pt-2 lg:px-10">
     <section aria-label="Welcome" className="welcome-surface flex flex-wrap items-center justify-between gap-3 px-4 py-2">
       <div><p className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-indigo-700 dark:text-indigo-300"><Sparkles className="h-3.5 w-3.5" />Your workspace</p><h1 className="text-[28px] font-extrabold leading-9 lg:text-[32px] lg:leading-10 tracking-tight text-slate-950 dark:text-white">Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}<span className="text-indigo-600 dark:text-indigo-300">.</span></h1><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your people, resources, and business updates. All in one place.</p></div>
-      <div className="flex flex-wrap gap-2"><a href="/resources/calendar/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Calendar</a><a href="/the-numbers/agent/" className="portal-interactive rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">Agent directory</a><a href="/the-numbers/market/" className="portal-interactive inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700">Explore market <ArrowRight className="h-4 w-4" /></a></div>
+      <div className="flex items-center gap-2" aria-label="Quick actions"><a href="/resources/calendar/" aria-label="Calendar" title="Calendar" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><CalendarDays aria-hidden="true" className="h-5 w-5" /></a><a href="/the-numbers/agent/" aria-label="Agent directory" title="Agent directory" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><Users aria-hidden="true" className="h-5 w-5" /></a><a href="/the-numbers/market/" aria-label="Explore market" title="Explore market" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg bg-indigo-600 text-white shadow-sm hover:bg-indigo-700"><BarChart3 aria-hidden="true" className="h-5 w-5" /></a></div>
     </section>
     <HomeDashboard />
   </div>;
@@ -76,5 +73,5 @@ export default function App() {
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
   const category = navigation.find(group => categoryPath(group) === window.location.pathname);
-  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><WorkspaceTracker pages={workspacePages} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }

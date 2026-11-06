@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export type ToolkitLink = { id: string; name: string; href: string; favorite: boolean };
+// Retain legacy stored entries when saving tool preferences; new resource history is no longer collected.
 export type RecentResource = { href: string; title: string; accessedAt: string };
 export type WorkspacePreferences = { tools: ToolkitLink[]; recent: RecentResource[]; pinned: RecentResource[] };
 export const defaultTools: ToolkitLink[] = [
@@ -49,10 +50,6 @@ export function updateWorkspace(email: string, update: (current: WorkspacePrefer
   memory.set(key, value);
   try { localStorage.setItem(key, JSON.stringify(value)); sessionOnly.delete(key); } catch { sessionOnly.add(key); }
   window.dispatchEvent(new CustomEvent(eventName, { detail: key }));
-}
-export function recordResource(email: string, resource: { href: string; title: string }) {
-  if (!resource.href || !resource.title || !validWorkspaceUrl(resource.href)) return;
-  updateWorkspace(email, current => ({ ...current, recent: [{ ...resource, accessedAt: new Date().toISOString() }, ...current.recent.filter(item => item.href !== resource.href)].slice(0, 30) }));
 }
 export function useWorkspacePreferences(email: string) {
   const [preferences, setPreferences] = useState(() => read(email));

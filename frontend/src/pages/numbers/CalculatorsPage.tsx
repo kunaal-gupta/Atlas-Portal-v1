@@ -1,13 +1,11 @@
 import { Calculator, Download, Info, Wallet } from 'lucide-react';
 import { useContext, useId, useRef, useState } from 'react';
 import { CategorySectionContext } from '../../components/shared/CategoryOverview';
-import { calculateCommission, calculateMortgage, type CommissionInput, type MortgageInput, type PaymentFrequency } from '../../lib/calculators';
+import { calculateCommission, calculateMortgage, mortgageDefaults, commissionDefaults, type CommissionInput, type MortgageInput, type PaymentFrequency } from '../../lib/calculators';
 
 const money = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', maximumFractionDigits: 2 }).format(value);
 const panel = 'min-w-0 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 sm:p-5';
 const inputStyle = 'mt-1 h-10 w-full min-w-0 max-w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-600 dark:bg-slate-800';
-const mortgageDefaults: MortgageInput = { price: 500000, downPayment: 100000, rate: 4.5, amortizationYears: 25, termYears: 5, frequency: 'monthly', compounding: 'semiannual', insurancePremium: 0, extraMonthly: 0, propertyTaxAnnual: 3600, homeInsuranceAnnual: 1200, condoMonthly: 0, utilitiesMonthly: 200 };
-const commissionDefaults: CommissionInput = { salePrice: 500000, mode: 'tiered', flatRate: 5, threshold: 100000, firstRate: 7, remainingRate: 3, taxRate: 5, listingShare: 50, agentSide: 'listing', agentShare: 85, referralRate: 0, brokerageFee: 0, agentExpenses: 0, mortgagePayoff: 300000, closingCosts: 2000 };
 function NumberField({ label, value, onChange, min = 0, max, step = 'any', hint }: { label: string; value: number; onChange: (value: number) => void; min?: number; max?: number; step?: number | 'any'; hint?: string }) {
   const id = useId();
   return <div className="min-w-0"><label htmlFor={id} className="block text-sm font-medium">{label}</label><input id={id} type="number" inputMode="decimal" min={min} max={max} step={step} value={Number.isFinite(value) ? value : ''} onChange={event => onChange(event.target.valueAsNumber)} aria-describedby={hint ? `${id}-hint` : undefined} className={inputStyle} />{hint && <p id={`${id}-hint`} className="mt-1 text-xs text-slate-500">{hint}</p>}</div>;
@@ -68,7 +66,7 @@ function CommissionCalculator() {
 export default function CalculatorsPage() {
   const embedded = useContext(CategorySectionContext);
   const Heading = embedded ? 'h2' : 'h1';
-  const [tab, setTab] = useState<'mortgage' | 'commission'>('mortgage');
+  const [tab, setTab] = useState<'mortgage' | 'commission'>(() => new URLSearchParams(window.location.search).get('calculator') === 'commission' ? 'commission' : 'mortgage');
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   return <div className="mx-auto max-w-[1400px] px-5 py-6 lg:px-10"><header className="mb-5"><p className="mb-2 text-xs font-semibold uppercase text-indigo-700 dark:text-indigo-300">Agent toolkit</p><Heading className={`${embedded ? 'text-2xl' : 'text-3xl'} font-bold tracking-tight`}>Mortgage & commission calculators</Heading><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 dark:text-slate-400">Build a client scenario, compare payment options, and understand transaction costs. All calculations run in your browser; figures are not saved.</p></header>
     <div role="tablist" aria-label="Calculator type" className="mb-5 flex flex-wrap gap-2" onKeyDown={event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const index = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : tab === 'mortgage' ? 1 : 0; setTab(index === 0 ? 'mortgage' : 'commission'); tabs.current[index]?.focus(); } }}>{(['mortgage', 'commission'] as const).map((name, index) => <button key={name} ref={element => { tabs.current[index] = element; }} id={`${name}-tab`} role="tab" aria-selected={tab === name} aria-controls={`${name}-panel`} tabIndex={tab === name ? 0 : -1} onClick={() => setTab(name)} className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold ${tab === name ? 'bg-indigo-600 text-white' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'}`}>{index === 0 ? <Calculator className="h-4 w-4" /> : <Wallet className="h-4 w-4" />}{index === 0 ? 'Mortgage' : 'Commission'}</button>)}</div>
