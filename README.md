@@ -181,6 +181,32 @@ The Support Desk is accessible in the footer.
 
 FAQ is available at `/faq/` from the footer, alongside Agent Support Desk, rather than on the homepage.
 
-Homepage Business Insights shares one reporting response with the welcome metrics. It derives average closed-deal value from monthly volume/closed count and compares active inventory with pending transaction workload. Demo data remains explicitly labelled; no historical trends, forecasts, or conversion rates are inferred.
+Homepage Business Insights shares one reporting response with the welcome metrics. It derives average closed-deal value from monthly volume/closed count and uses optional source history and listing categories for its charts. Demo data remains explicitly labelled; no forecasts or conversion rates are inferred.
 
 The three-card news carousel advances every six seconds when additional items are available. Hover, keyboard focus, explicit pause, hidden tabs, and reduced-motion preferences pause automatic rotation; arrows and page controls remain available.
+
+## Homepage charts
+
+Business Insights now uses two standalone chart cards: monthly volume/closed-deal bars and an active-inventory donut with property-type/bedroom tabs, count/percentage modes, and selectable legends. Controls work with keyboard and touch. Charts remain below the homepage calculators.
+
+The optional reporting response can additionally include:
+
+```json
+{
+  "activeListings": 10,
+  "pendingTransactions": 2,
+  "closedThisMonth": 5,
+  "salesVolume": 2500000,
+  "dataMode": "cached",
+  "updatedAt": "2026-11-06T10:00:00-07:00",
+  "history": [{ "month": "2026-10", "closedDeals": 5, "salesVolume": 2500000 }],
+  "listingMix": {
+    "propertyTypes": [{ "label": "Detached", "count": 7 }, { "label": "Condo", "count": 3 }],
+    "bedrooms": [{ "label": "3 bedrooms", "count": 8 }, { "label": "Unspecified", "count": 2 }]
+  }
+}
+```
+
+This is an illustrative API contract, not brokerage data. History allows up to 60 unique `YYYY-MM` records, sorted by month; omitted months remain absent. Each listing breakdown allows up to 12 uniquely named categories, must include unspecified values when applicable, and must sum to `activeListings`. Invalid optional chart fields are omitted without discarding valid company totals. Missing source history/categories produce explicit empty states; synthetic history is never added to valid API responses. Only the demonstration mode uses the separate fixtures in `frontend/src/data/demoReporting.ts` (May–October 2026 examples).
+
+Chart-data validation tests: `node --experimental-strip-types frontend/src/lib/reportingCharts.test.ts`.
