@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f5f7f9" />
+    <meta name="theme-color" content="#F3F5F9" />
     <meta name="description" content="Atlas agent resources portal" />
     <title>Atlas | Agent Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,15 +15,21 @@
           extend: {
             colors: {
               slate: {
-                50: '#f6f8fb', 100: '#eaf0f6', 200: '#d9e2ec',
+                50: '#f6f8fb', 100: '#eaf0f6', 200: '#e2e8f0',
                 300: '#bdcbd9', 400: '#8295a9', 500: '#5c7085',
                 600: '#455b72', 700: '#30465d', 800: '#23384d',
-                900: '#1c2c3d', 950: '#142231'
+                900: '#101827', 950: '#101827'
+              },
+              amber: {
+                50: '#fbf7f0', 100: '#f5ead8', 200: '#ead3ad',
+                300: '#dfbb86', 400: '#D5A45D', 500: '#bd8942',
+                600: '#a16e2f', 700: '#805625', 800: '#664521',
+                900: '#533a20', 950: '#2d1e11'
               },
               indigo: {
-                50: '#edf9fb', 100: '#d9f1f4', 200: '#afe1e8',
+                50: '#E8F5F6', 100: '#d9f1f4', 200: '#afe1e8',
                 300: '#79ccd7', 400: '#42b2c3', 500: '#2097ab',
-                600: '#117e91', 700: '#106677', 800: '#125464',
+                600: '#087F91', 700: '#106677', 800: '#125464',
                 900: '#144654', 950: '#092d37'
               }
             },
@@ -45,12 +51,14 @@
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
-        background-color: #f5f7f9;
+        background-color: #F3F5F9;
         color: #23384d;
       }
       h1, h2, h3, h4, h5, h6, button, nav {
         font-family: 'Manrope', sans-serif;
       }
+      h1, h2, h3, h4 { color: #101827; }
+      .dark h1, .dark h2, .dark h3, .dark h4 { color: #e2e8f0; }
       html { color-scheme: light; touch-action: auto; }
       html { scroll-padding-top: 11rem; }
       body { -webkit-font-smoothing: antialiased; font-size: 15px; line-height: 1.6; }
@@ -63,15 +71,12 @@
       .skip-link:focus { transform: translateY(0); }
       #main-content:focus { outline: none; }
       .category-section > div { max-width: none; margin: 0; padding: 0; }
-      .portal-background {
-        background-image: radial-gradient(ellipse 70% 32rem at 0% 5rem, rgb(17 126 145 / 0.075), transparent 75%), radial-gradient(ellipse 60% 28rem at 100% 8rem, rgb(35 56 77 / 0.035), transparent 75%), linear-gradient(180deg, #f0f4f7 0%, #f7f8fa 38rem, #f5f7f9 100%);
-        background-repeat: no-repeat;
-      }
-      .dark .portal-background {
-        background-image: radial-gradient(ellipse 70% 32rem at 0% 5rem, rgb(17 126 145 / 0.10), transparent 75%), radial-gradient(ellipse 60% 28rem at 100% 8rem, rgb(35 56 77 / 0.06), transparent 75%), linear-gradient(180deg, #142231 0%, #162332 38rem, #142231 100%);
-      }
+      .portal-background { background-color: #F3F5F9; background-image: none; }
+      .dark .portal-background { background-color: #142231; background-image: none; }
+      .welcome-surface { background: linear-gradient(105deg, #E8F5F6 0%, #f4fafb 48%, #ffffff 100%); border: 1px solid #E2E8F0; border-radius: 12px; }
+      .dark .welcome-surface { background: linear-gradient(105deg, #14363b 0%, #1c2c3d 80%); border-color: #30465d; }
       .portal-interactive { position: relative; }
-      a:focus-visible, button:focus-visible { outline: 2px solid #117e91; outline-offset: 3px; }
+      a:focus-visible, button:focus-visible { outline: 2px solid #087F91; outline-offset: 3px; }
       @media (prefers-reduced-motion: no-preference) {
         button, a.rounded-full { transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
         button:active, a.rounded-full:active { transform: scale(0.98); }

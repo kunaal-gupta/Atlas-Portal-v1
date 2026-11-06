@@ -6,11 +6,13 @@ export interface NewsCardItem {
   excerpt: string;
   source: string;
   date: string;
-  type: 'Internal' | 'Outside';
+  type: 'Internal' | 'Outside' | 'Market' | 'Training';
   href: string;
 }
 
 export default function NewsCard({ item, compact = false }: { item: NewsCardItem; compact?: boolean }) {
+  const category = item.type === 'Outside' ? 'Market' : item.type;
+  const tagTone = category === 'Training' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' : category === 'Market' ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300';
   return (
     <a
       href={item.href}
@@ -18,7 +20,7 @@ export default function NewsCard({ item, compact = false }: { item: NewsCardItem
       className={`portal-interactive group flex min-w-0 flex-col rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:border-slate-800 dark:bg-slate-900 ${compact ? 'min-h-44 gap-3 p-4' : 'min-h-52 gap-4 p-6'}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-1 text-[10px] font-medium">
-        <span className={`rounded-md px-1.5 py-1 ${item.type === 'Internal' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'}`}>{item.type} news</span>
+        <span className={`rounded-md px-1.5 py-1 ${tagTone}`}>{category} news</span>
         <span className="text-slate-500">{item.date}</span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col">

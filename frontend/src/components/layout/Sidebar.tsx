@@ -27,7 +27,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
   const linkStyle = (selected: boolean) => `block rounded-xl px-3 py-3 text-sm transition-colors ${selected ? 'bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-700'}`;
 
   return (
-    <nav ref={navigation} className="sticky top-[76px] z-30 border-b border-white/10 bg-[#101523] px-5 pb-3 shadow-md lg:px-10" aria-label="Resource categories" onKeyDown={event => {
+    <nav ref={navigation} className="sticky top-[76px] z-30 border-b border-white/10 bg-[#101827] px-5 pb-3 shadow-md lg:px-10" aria-label="Resource categories" onKeyDown={event => {
       if (event.key === 'Escape') {
         if (mobileOpen) mobileToggle.current?.focus();
         else navigation.current?.querySelector<HTMLButtonElement>('[aria-expanded="true"]')?.focus();
@@ -44,7 +44,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
             const expanded = openGroup === group.name;
             const selected = activeGroup?.name === group.name;
             return <div key={group.name} className="relative" onPointerEnter={event => { if (event.pointerType === 'mouse') setOpenGroup(group.name); }} onPointerLeave={event => { if (event.pointerType === 'mouse') setOpenGroup(null); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpenGroup(null); }}>
-              <div className={`flex items-center rounded-lg ${selected ? 'bg-white/10' : ''}`}><a href={categoryPath(group)} aria-current={path === categoryPath(group) ? 'page' : undefined} className="flex min-h-10 items-center rounded-lg py-1 pl-4 pr-2 text-xs font-semibold text-slate-200 hover:text-white">{group.name}</a><button type="button" aria-label={`Show ${group.name} pages`} aria-expanded={expanded} aria-controls={`portal-category-${index}`} onClick={() => setOpenGroup(expanded ? null : group.name)} className={`flex min-h-10 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors ${selected || expanded ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}>
+              <div className={`flex items-center rounded-lg ${selected ? 'bg-white/5 shadow-[inset_0_-2px_0_0_#087F91]' : ''}`}><a href={categoryPath(group)} aria-current={path === categoryPath(group) ? 'page' : undefined} className="flex min-h-10 items-center rounded-lg py-1 pl-4 pr-2 text-xs font-semibold text-white/90 hover:text-white">{group.name}</a><button type="button" aria-label={`Show ${group.name} pages`} aria-expanded={expanded} aria-controls={`portal-category-${index}`} onClick={() => setOpenGroup(expanded ? null : group.name)} className={`flex min-h-10 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors ${selected || expanded ? 'bg-white/10 text-white' : 'text-slate-200 hover:bg-white/10 hover:text-white'}`}>
                 <ChevronDown className={`h-3.5 w-3.5 motion-safe:transition-transform ${expanded ? 'rotate-180' : ''}`} />
               </button></div>
               {expanded && <div id={`portal-category-${index}`} className={`absolute top-full z-30 w-64 max-w-[calc(100vw-2.5rem)] pt-2 ${index >= groups.length / 2 ? 'right-0' : 'left-0'}`}>
