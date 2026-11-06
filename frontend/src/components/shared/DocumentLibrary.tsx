@@ -28,7 +28,7 @@ function Files({ files, view }: { files: DocumentItem[]; view: View }) {
   if (view === 'grid') return <div className="grid min-w-0 grid-cols-1 gap-3 py-2 md:grid-cols-2 xl:grid-cols-3">{files.map(file => <ResourceCard key={file.id} id={file.id} title={file.title} href={file.url} updatedDate={file.updated_date} />)}</div>;
   return <div className="divide-y divide-slate-100 dark:divide-slate-800">{files.map(file => <div key={file.id} data-file-row className="flex min-w-0 items-center gap-3 py-3">
     <FileText className="h-5 w-5 shrink-0 text-indigo-600" />
-    <a href={file.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-indigo-700"><span title={file.title} className="block truncate text-sm font-medium">{file.title}</span><span className="block text-xs text-slate-500">{getFileType(file.url)}<span className="sm:hidden"> · {formatModifiedDate(file.updated_date)}</span></span></a>
+    <a data-resource-title={file.title} href={file.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-indigo-700"><span title={file.title} className="block truncate text-sm font-medium">{file.title}</span><span className="block text-xs text-slate-500">{getFileType(file.url)}<span className="sm:hidden"> · {formatModifiedDate(file.updated_date)}</span></span></a>
     <span className="hidden shrink-0 text-xs text-slate-500 sm:block">{formatModifiedDate(file.updated_date)}</span><FileActions id={file.id} title={file.title} href={file.url} />
   </div>)}</div>;
 }
