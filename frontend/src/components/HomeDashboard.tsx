@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Pause, Play,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { getNews } from '../api/news';
 import AgentWorkspace from './AgentWorkspace';
-import UpcomingEvents from './UpcomingEvents';
 import HomeFaq from './HomeFaq';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
@@ -20,27 +19,6 @@ const fallbackNews: NewsItem[] = [
 export default function HomeDashboard() {
   const [news, setNews] = useState(fallbackNews);
   const [slide, setSlide] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [interacting, setInteracting] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [hidden, setHidden] = useState(document.hidden);
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const syncMotion = () => setReducedMotion(media.matches);
-    const syncVisibility = () => setHidden(document.hidden);
-    syncMotion();
-    media.addEventListener('change', syncMotion);
-    document.addEventListener('visibilitychange', syncVisibility);
-    return () => {
-      media.removeEventListener('change', syncMotion);
-      document.removeEventListener('visibilitychange', syncVisibility);
-    };
-  }, []);
-  useEffect(() => {
-    if (paused || interacting || reducedMotion || hidden || news.length <= 2) return;
-    const timer = window.setTimeout(() => setSlide(current => (current + 1) % news.length), 6000);
-    return () => window.clearTimeout(timer);
-  }, [paused, interacting, reducedMotion, hidden, news.length, slide]);
   useEffect(() => {
     getNews().then((rows) => {
       if (!rows.length) return;
@@ -54,7 +32,7 @@ export default function HomeDashboard() {
 
   }, []);
 
-  const visibleNews = [0, 1].map((offset) => news[(slide + offset) % news.length]);
+  const visibleNews = [0, 1, 2].map((offset) => news[(slide + offset) % news.length]);
 
   return <div className="mt-4 space-y-4">
     <div className="grid items-start gap-4 lg:grid-cols-3">
@@ -65,8 +43,6 @@ export default function HomeDashboard() {
       <div key={slide} className="news-slide grid gap-3 sm:grid-cols-2" aria-live={paused || interacting || reducedMotion ? "polite" : "off"}>{visibleNews.map((item, index) => <NewsCard compact item={item} key={`${item.id}-${index}`} />)}</div>
       <div className="mt-1 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} aria-current={slide === index ? 'true' : undefined} className="group grid h-5 w-6 place-items-center rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span className={`h-1 rounded-full transition-all ${slide === index ? 'w-5 bg-indigo-600' : 'w-1.5 bg-slate-300 group-hover:bg-indigo-400 dark:bg-slate-700'}`} /></button>)}</div>
     </section>
-    <UpcomingEvents />
-    </div>
 
     <AgentWorkspace />
     <HomeFaq />
