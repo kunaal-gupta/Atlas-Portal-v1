@@ -75,3 +75,6 @@ export function calculateCommission(input: CommissionInput) {
   const sellerNet = input.salePrice - commission - tax - input.mortgagePayoff - input.closingCosts;
   return { commission, tax, sellerCommissionCost: commission + tax, effectiveRate: commission / input.salePrice * 100, firstTier, remainingTier, listingGross, buyerGross, sideGross, referral, brokerageShare, agentGross, agentNet, sellerNet };
 }
+
+export const mortgageDefaults: MortgageInput = { price: 500000, downPayment: 100000, rate: 4.5, amortizationYears: 25, termYears: 5, frequency: 'monthly', compounding: 'semiannual', insurancePremium: 0, extraMonthly: 0, propertyTaxAnnual: 3600, homeInsuranceAnnual: 1200, condoMonthly: 0, utilitiesMonthly: 200 };
+export const commissionDefaults: CommissionInput = { salePrice: 500000, mode: 'tiered', flatRate: 5, threshold: 100000, firstRate: 7, remainingRate: 3, taxRate: 5, listingShare: 50, agentSide: 'listing', agentShare: 85, referralRate: 0, brokerageFee: 0, agentExpenses: 0, mortgagePayoff: 300000, closingCosts: 2000 };
