@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   ArrowRight, BellRing, Building2, ChevronLeft, ChevronRight,
-  CircleDollarSign, Home, RefreshCw, TrendingUp,
+  CircleDollarSign, Home, Info, TrendingUp,
 } from 'lucide-react';
 import { getNews } from '../api/news';
+import AnnouncementStatus from './shared/AnnouncementStatus';
+import { parseNumbersPayload, reportingLabel, reportingDescription, formatReportingTime, type NumbersStatus } from '../lib/reporting';
 import { announcements } from '../data/announcements';
 import AgentWorkspace from './AgentWorkspace';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
@@ -35,7 +37,7 @@ export default function HomeDashboard() {
   const [news, setNews] = useState(fallbackNews);
   const [slide, setSlide] = useState(0);
   const [numbers, setNumbers] = useState(fallbackNumbers);
-  const [numbersLive, setNumbersLive] = useState(false);
+  const [numbersStatus, setNumbersStatus] = useState<NumbersStatus>({ mode: 'loading' });
   const [activeMetric, setActiveMetric] = useState<string | null>(null);
   const [tooltipAbove, setTooltipAbove] = useState(false);
   const showMetric = (label: string, element: HTMLElement) => {
@@ -62,21 +64,24 @@ export default function HomeDashboard() {
       setNews([internal[0], fallbackNews[1], ...(internal[1] ? [internal[1]] : []), fallbackNews[3]]);
     }).catch(() => undefined);
 
+    let cancelled = false;
     fetch('/api/skyslope/numbers/')
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((payload: SkySlopeNumbers) => {
-        if ([payload.activeListings, payload.pendingTransactions, payload.closedThisMonth, payload.salesVolume].every(Number.isFinite)) {
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then(raw => {
+        const payload = parseNumbersPayload(raw);
+        if (!cancelled) {
           setNumbers(payload);
-          setNumbersLive(true);
+          setNumbersStatus({ mode: payload.dataMode || 'snapshot', updatedAt: payload.updatedAt, fetchedAt: new Date().toISOString() });
         }
       })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setNumbersStatus({ mode: 'demo' }); });
+    return () => { cancelled = true; };
   }, []);
 
   const visibleNews = [0, 1, 2].map((offset) => news[(slide + offset) % news.length]);
   const priorityAnnouncement = announcements.find(item => item.urgent) ?? announcements[0];
   const metrics = [
-    { label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Live inventory', description: 'Properties currently listed for sale across the company.' },
+    { label: 'Active listings', value: numbers.activeListings.toLocaleString(), icon: Home, note: 'Listed properties', description: 'Properties currently listed for sale across the company.' },
     { label: 'Pending', value: numbers.pendingTransactions.toLocaleString(), icon: TrendingUp, note: 'Transactions', description: 'Transactions with an accepted offer that have not yet closed.' },
     { label: 'Closed this month', value: numbers.closedThisMonth.toLocaleString(), icon: Building2, note: 'Company wide', description: 'Transactions completed across the company this month.' },
     { label: 'Sales volume', value: formatCurrency(numbers.salesVolume), icon: CircleDollarSign, note: 'Month to date', description: 'Total closed sales volume for the current month.' },
@@ -88,7 +93,7 @@ export default function HomeDashboard() {
     <section aria-labelledby="numbers-heading" className="flex min-w-0 flex-col rounded-2xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-2xl border-b border-indigo-100 bg-white px-4 py-3 dark:border-slate-800 dark:bg-indigo-950/40">
         <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-indigo-600 dark:bg-indigo-950"><TrendingUp className="h-4 w-4" /></span><div><h2 id="numbers-heading" className="text-xl font-bold">The numbers</h2><p className="text-xs text-slate-500">Company performance at a glance</p></div></div>
-        <span className="flex items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 text-[10px] font-medium text-slate-500 dark:bg-slate-800"><span className={`h-2 w-2 rounded-full ${numbersLive ? 'bg-indigo-500' : 'bg-slate-400'}`} />{numbersLive ? 'Live from SkySlope' : 'SkySlope preview data'} <RefreshCw className="h-3.5 w-3.5" /></span>
+        <div className="min-w-0 text-xs"><details><summary className="flex cursor-pointer list-none items-center gap-1.5 font-semibold text-indigo-700 dark:text-indigo-300"><Info className="h-3.5 w-3.5" />{reportingLabel(numbersStatus)}</summary><p className="mt-2 max-w-md text-xs leading-5 text-slate-500 dark:text-slate-400">{reportingDescription(numbersStatus)}{numbersStatus.fetchedAt && <span className="mt-1 block">Retrieved: {formatReportingTime(numbersStatus.fetchedAt)} (browser time zone).</span>}</p></details><p className="mt-1 text-slate-500 dark:text-slate-400">Last updated: {numbersStatus.mode === 'demo' || numbersStatus.mode === 'loading' ? 'Not applicable — illustrative figures' : formatReportingTime(numbersStatus.updatedAt)}</p></div>
       </div>
       <div className="grid grid-cols-2 gap-2 px-2 py-3 lg:grid-cols-4">
         {metrics.map(({ label, value, icon: Icon, note, description }, index) => {
@@ -109,7 +114,7 @@ export default function HomeDashboard() {
               <span className="min-w-0"><span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400">{label}</span><span className="mt-1 block break-words text-xl font-bold tabular-nums tracking-tight">{value}</span><span className="mt-0.5 block text-[10px] text-slate-500 dark:text-slate-400">{note}</span></span>
             </button>
             {expanded && <div id={`metric-detail-${index}`} role="tooltip" className={`absolute ${tooltipAbove ? 'bottom-full' : 'top-full'} z-50 w-56 max-w-[calc(100vw-3rem)] rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-5 text-white shadow-lg ${index % 2 ? 'right-0 lg:left-0 lg:right-auto' : 'left-0'} ${index === 3 ? 'lg:!left-auto lg:!right-0' : ''}`}>
-              {description}{!numbersLive && <span className="mt-1 block text-slate-300">Showing preview data.</span>}
+              {description}<span className="mt-1 block text-slate-300">{reportingLabel(numbersStatus)}</span>
             </div>}
           </div>;
         })}
@@ -120,7 +125,7 @@ export default function HomeDashboard() {
 
     <section id="announcements" aria-labelledby="announcements-heading" className="min-w-0 self-stretch rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2"><BellRing className="h-5 w-5 text-indigo-600 dark:text-indigo-300" /><h2 id="announcements-heading" className="text-xl font-bold">Announcements</h2></div><a href="/resources/news-and-events/#announcements-list" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline dark:text-indigo-300">View all ({announcements.length})<ArrowRight className="h-3.5 w-3.5" /></a></div>
-      {priorityAnnouncement && <article aria-label="Priority announcement"><p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">{priorityAnnouncement.label}</p><h3 className="mt-1 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{priorityAnnouncement.title}</h3><p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{priorityAnnouncement.time}</p></article>}
+      {priorityAnnouncement && <article aria-label="Priority announcement"><AnnouncementStatus item={priorityAnnouncement} /><h3 className="mt-1 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">{priorityAnnouncement.title}</h3><a href={priorityAnnouncement.actionHref || '/resources/news-and-events/#announcements-list'} className="mt-2 inline-flex items-center gap-1 rounded-lg text-sm font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Review now<ArrowRight className="h-3.5 w-3.5" /></a></article>}
     </section>
 
     <section aria-labelledby="news-heading" className="min-w-0 lg:col-span-2">
@@ -131,9 +136,6 @@ export default function HomeDashboard() {
 
     <AgentWorkspace />
 
-      <section aria-labelledby="performance-heading" className="lg:col-span-2 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600 dark:text-indigo-400">12 month trend</p><h2 id="performance-heading" className="mt-1 text-xl font-extrabold">Sales performance</h2><p className="mt-1 text-xs text-slate-500">Closed volume across the company</p></div><span className="shrink-0 rounded-full bg-slate-50 px-3 py-1 text-[10px] font-semibold text-slate-700 dark:bg-slate-950 dark:text-slate-300">Preview · Last 12 months</span></div>
-        <div className="mt-8 flex h-64 gap-3"><div className="flex flex-col justify-between pb-7 text-[10px] text-slate-400"><span>$30M</span><span>$20M</span><span>$10M</span><span>$0</span></div><div className="relative flex-1 border-b border-l border-slate-200 dark:border-slate-700"><div className="absolute inset-0 flex flex-col justify-between"><span className="border-t border-dashed border-slate-200 dark:border-slate-800" /><span className="border-t border-dashed border-slate-200 dark:border-slate-800" /><span className="border-t border-dashed border-slate-200 dark:border-slate-800" /><span /></div><svg viewBox="0 0 900 240" preserveAspectRatio="none" className="absolute inset-x-0 top-2 h-[calc(100%-2rem)] w-full" role="img" aria-label="Sales performance rises from 12 million to 28.4 million dollars"><defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#21a4b4" stopOpacity=".22"/><stop offset="100%" stopColor="#21a4b4" stopOpacity="0"/></linearGradient></defs><path d="M0 190 L80 176 L165 182 L245 145 L330 154 L410 115 L490 124 L575 86 L655 101 L735 58 L815 70 L900 28 L900 240 L0 240 Z" fill="url(#chartFill)"/><polyline points="0,190 80,176 165,182 245,145 330,154 410,115 490,124 575,86 655,101 735,58 815,70 900,28" fill="none" stroke="#137f86" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/></svg><div className="absolute inset-x-0 bottom-1 flex justify-between text-[9px] font-semibold uppercase text-slate-400"><span>Oct</span><span>Jan</span><span>Apr</span><span>Jul</span><span>Sep</span></div></div></div>
-      </section>
+
   </div>;
 }

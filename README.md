@@ -147,3 +147,18 @@ Document cards and table rows link to the permission-protected admin deletion co
 - `GET /api/calendar/events/?start=<ISO>&end=<ISO>` lists live Outlook events
 - `POST /api/calendar/events/` creates an Outlook event
 - `PATCH` or `DELETE /api/calendar/events/<event-id>/` updates or deletes an Outlook event
+
+
+## Planning calculators and dashboard metadata
+
+The Numbers → Calculators provides browser-only CAD mortgage and commission estimates. Mortgage defaults use nominal rates compounded semiannually, with configurable payment frequency, amortization, term, financed insurance premium, extra payments, and ownership costs. The schedule assumes the entered rate continues after the selected term. Insurance eligibility/premiums and lender qualification are not determined automatically. Commission rates are editable illustrations; referral is deducted from the selected side before the brokerage split, then fixed agent costs are deducted. GST/HST on commission is separate from agent earnings.
+
+Run the financial/reporting tests on Node 22.6+ (verified on Node 24):
+
+```bash
+node --experimental-strip-types frontend/src/lib/calculators.test.ts
+```
+
+The optional `/api/skyslope/numbers/` response supports `dataMode: "live" | "cached"` and an ISO `updatedAt` timestamp with a time-zone offset. Without a declared mode, the UI labels returned numbers as an API snapshot with unknown freshness. Missing timestamps are shown as not provided; retrieval time is separate from source update time. When the endpoint is unavailable or invalid, the UI explicitly identifies demonstration data. This repository does not currently implement that backend endpoint.
+
+Announcement deadlines in `frontend/src/data/announcements.ts` require a verified ISO date (`dueDate`, e.g. `2026-09-30`) and `deadlineVerified: true` before they can be marked overdue. Date boundaries use America/Edmonton. The original September 30 FINTRAC sample has no confirmed year and remains unverified; its Review now link opens the existing FINTRAC resource page, not an acknowledgement-submission workflow.

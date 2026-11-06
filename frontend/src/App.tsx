@@ -11,6 +11,7 @@ import CategoryOverview from './components/shared/CategoryOverview';
 import MarketPage from './pages/numbers/MarketPage';
 import AgentPage from './pages/numbers/AgentPage';
 import FirmPage from './pages/numbers/FirmPage';
+import CalculatorsPage from './pages/numbers/CalculatorsPage';
 import NewAgentPage from './pages/training/NewAgentPage';
 import NewConstructionPage from './pages/training/NewConstructionPage';
 import OngoingPage from './pages/training/OngoingPage';
@@ -32,6 +33,7 @@ import ComplianceTipsPage from './pages/compliance/TipsPage';
 import OtherPage from './pages/compliance/OtherPage';
 
 const routes: Record<string, React.ComponentType> = {
+  '/the-numbers/calculators/': CalculatorsPage,
   '/the-numbers/market/': MarketPage, '/the-numbers/agent/': AgentPage, '/the-numbers/firm/': FirmPage,
   '/training/new-agent/': NewAgentPage, '/training/new-construction/': NewConstructionPage, '/training/on-going/': OngoingPage,
   '/resources/trade-partners/': TradePartnersPage, '/resources/condo/': CondoPage, '/resources/general/': GeneralPage, '/resources/tips/': ResourceTipsPage, '/resources/news-and-events/': NewsEventsPage, '/resources/calendar/': CalendarPage,
@@ -41,7 +43,7 @@ const routes: Record<string, React.ComponentType> = {
 };
 
 const navigation: NavigationGroup[] = [
-  { name: 'The Numbers', links: [['Market','/the-numbers/market/'],['Agent','/the-numbers/agent/'],['Firm','/the-numbers/firm/']].map(([name,path]) => ({name,path})) },
+  { name: 'The Numbers', links: [['Market','/the-numbers/market/'],['Agent','/the-numbers/agent/'],['Firm','/the-numbers/firm/'],['Calculators','/the-numbers/calculators/']].map(([name,path]) => ({name,path})) },
   { name: 'Training', links: [['New Agent','/training/new-agent/'],['New Construction','/training/new-construction/'],['On-Going','/training/on-going/']].map(([name,path]) => ({name,path})) },
   { name: 'Resources', links: [['Trade Partners','/resources/trade-partners/'],['Condo','/resources/condo/'],['General','/resources/general/'],['Tips','/resources/tips/'],['News & Events','/resources/news-and-events/'],['Calendar','/resources/calendar/']].map(([name,path]) => ({name,path})) },
   { name: 'Marketing', links: [['Logos','/marketing/logos/'],['Brand Book Summary','/marketing/brand-book-summary/'],['Templates','/marketing/templates/'],['Canva Link','/marketing/canva-link/']].map(([name,path]) => ({name,path})) },
