@@ -78,8 +78,14 @@
       .home-page, .home-page h1, .home-page h2, .home-page h3, .home-page h4, .home-page button { font-family: 'DM Sans', system-ui, sans-serif; }
       .home-panel { padding: 16px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px rgb(16 24 39 / 0.035); }
       .dark .home-panel { border-color: #30465d; background: #101827; box-shadow: none; }
+      .home-panel.toolkit-panel { padding: 10px 14px; }
       .home-section-title { font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.015em; }
-      .home-page #news > div > a { border-radius: 12px; box-shadow: none; border-color: #E2E8F0; }
+      .home-page #news .news-article { border-radius: 16px; border-color: #E2E8F0; box-shadow: 0 8px 24px rgb(16 24 39 / 0.09); }
+      .home-page #news .news-article:hover, .home-page #news .news-article:focus-visible { box-shadow: 0 14px 32px rgb(8 127 145 / 0.17); border-color: #a9d6dd; }
+      .dark .home-page #news .news-article { border-color: #30465d; box-shadow: 0 8px 24px rgb(0 0 0 / 0.22); }
+      .dark .home-page #news .news-article:hover, .dark .home-page #news .news-article:focus-visible { box-shadow: 0 12px 30px rgb(8 127 145 / 0.25); }
+      @keyframes news-slide-in { from { opacity: 0.5; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+      @media (prefers-reduced-motion: no-preference) { .news-slide { animation: news-slide-in 350ms ease-out; } }
       .dark .home-page #news > div > a { border-color: #30465d; }
       .portal-interactive { position: relative; }
       a:focus-visible, button:focus-visible { outline: 2px solid #087F91; outline-offset: 3px; }
