@@ -1,8 +1,9 @@
 import { ChevronDown, ChevronRight, FilePlus2, FileText, Folder, FolderPlus, LayoutGrid, List, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import type { DocumentItem } from '../../types';
 import { usePortalUser } from '../auth/AuthContext';
 import EmptyState from './EmptyState';
+import { CategorySectionContext } from './CategoryOverview';
 import ResourceCard, { FileActions, formatModifiedDate, getFileType, isImageFile } from './ResourceCard';
 
 interface FolderNode { id: number | null; files: DocumentItem[]; folders: Map<string, FolderNode> }
@@ -44,6 +45,7 @@ function FolderSection({ name, node, view, filtering }: { name: string; node: Fo
 }
 export default function DocumentLibrary({ documents }: { documents: DocumentItem[] }) {
   const user = usePortalUser();
+  const Heading = useContext(CategorySectionContext) ? 'h3' : 'h2';
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortOption>('title-asc');
   const [view, setView] = useState<View>(() => documents.length > 0 && documents.every(file => isImageFile(file.url)) ? 'grid' : 'list');
@@ -56,14 +58,13 @@ export default function DocumentLibrary({ documents }: { documents: DocumentItem
     });
   }, [documents, query, sort]);
   const tree = useMemo(() => buildTree(visible), [visible]);
-  return <div className="mt-4 min-w-0">
-    <div className="mb-3 flex flex-wrap items-center gap-2">
-      <label className="relative w-full min-w-0 sm:w-auto sm:flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input aria-label="Filter files and folders" value={query} onChange={event => setQuery(event.target.value)} placeholder="Filter files and folders" className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm dark:border-slate-700 dark:bg-slate-900" /></label>
-      <select aria-label="Sort documents" value={sort} onChange={event => setSort(event.target.value as SortOption)} className="h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="title-asc">Name A–Z</option><option value="title-desc">Name Z–A</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
-      <div className="flex gap-1">{(['list', 'grid'] as const).map(mode => <button key={mode} type="button" aria-label={`${mode === 'list' ? 'List' : 'Grid'} view`} aria-pressed={view === mode} onClick={() => setView(mode)} className={`grid h-10 w-10 place-items-center rounded-lg ${view === mode ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{mode === 'list' ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}</button>)}</div>
-      {user?.is_superuser && <><a href="/admin/content/document/add/" className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold text-indigo-700"><FilePlus2 className="h-4 w-4" />Add file</a><a href="/admin/content/documentfolder/add/" className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold text-indigo-700"><FolderPlus className="h-4 w-4" />Add folder</a></>}
+  return <div className="min-w-0">
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><Heading className="text-xl font-semibold">Resource library</Heading><label className="relative w-full min-w-0 sm:ml-auto sm:w-72 lg:w-80"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><input aria-label="Filter files and folders" value={query} onChange={event => setQuery(event.target.value)} placeholder="Filter files and folders" className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm dark:border-slate-700 dark:bg-slate-900" /></label></div>
+    <div className="mb-2 flex flex-wrap items-center gap-2"><p className="mr-auto text-xs text-slate-500">{visible.length} of {documents.length} files</p>
+      <select aria-label="Sort documents" value={sort} onChange={event => setSort(event.target.value as SortOption)} className="h-8 min-w-0 rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="title-asc">Name A–Z</option><option value="title-desc">Name Z–A</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
+      <div className="flex gap-1">{(['list', 'grid'] as const).map(mode => <button key={mode} type="button" aria-label={`${mode === 'list' ? 'List' : 'Grid'} view`} aria-pressed={view === mode} onClick={() => setView(mode)} className={`grid h-8 w-8 place-items-center rounded-lg ${view === mode ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{mode === 'list' ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}</button>)}</div>
+      {user?.is_superuser && <><a href="/admin/content/document/add/" className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-indigo-700"><FilePlus2 className="h-4 w-4" />Add file</a><a href="/admin/content/documentfolder/add/" className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-indigo-700"><FolderPlus className="h-4 w-4" />Add folder</a></>}
     </div>
-    <p className="mb-2 text-xs text-slate-500">{visible.length} of {documents.length} files</p>
-    {!visible.length ? <EmptyState title="No matching files" message="Try a different filter." /> : <div className="min-w-0 border-t border-slate-200 dark:border-slate-700">{[...tree.folders.entries()].map(([name, node]) => <FolderSection key={name} name={name} node={node} view={view} filtering={Boolean(query.trim())} />)}<Files files={tree.files} view={view} /></div>}
+    {!visible.length ? (documents.length > 0 ? <EmptyState title="No matching files" message="Try a different filter." /> : null) : <div className="min-w-0 border-t border-slate-200 dark:border-slate-700">{[...tree.folders.entries()].map(([name, node]) => <FolderSection key={name} name={name} node={node} view={view} filtering={Boolean(query.trim())} />)}<Files files={tree.files} view={view} /></div>}
   </div>;
 }

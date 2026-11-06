@@ -172,7 +172,7 @@ export default function AgentPage() {
   );
 
   return (
-    <div className="mx-auto max-w-[1600px] px-5 py-7 lg:px-8">
+    <div className="mx-auto max-w-[1600px] px-5 py-3 lg:px-8">
       <PageHeader
         category="The Numbers"
         title="Agent"
@@ -238,14 +238,14 @@ export default function AgentPage() {
         </div>
 
         {failed ? (
-          <div className="mt-6">
+          <div className="mt-4">
             <EmptyState
               title="Directory unavailable"
               message="Please try again shortly."
             />
           </div>
         ) : !loading && !visible.length ? (
-          <div className="mt-6">
+          <div className="mt-4">
             <EmptyState
               title="No agents found"
               message="Try another search term."

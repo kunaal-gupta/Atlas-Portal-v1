@@ -16,9 +16,9 @@ export default function ResourcePage({ category, title, description, icon, accen
     getDocuments(title).then(setDocuments).catch(() => setDocuments([])).finally(() => setLoading(false));
   }, [children, title]);
 
-  return <div className="mx-auto max-w-[1400px] px-5 py-7 lg:px-10">
+  return <div className="mx-auto max-w-[1400px] px-5 py-3 lg:px-10">
     <PageHeader category={category} title={title} description={description} icon={icon} accent={accent} />
+    {children ?? <section aria-label={`${title} resource library`} className="mt-3">{loading ? <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-semibold">Resource library</h2><p role="status" className="text-sm text-slate-500">Loading files…</p></div> : <><DocumentLibrary documents={documents} />{!documents.length && <div className="mt-3"><EmptyState title="No available files" message="Uploaded files will appear here when available." /></div>}</>}</section>}
     {intro}
-    {children ?? <section className="mt-8"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-indigo-600">Curated for you</p><h2 className="mt-1 text-2xl font-extrabold">Resource library</h2>{loading ? <p className="mt-5 text-sm text-slate-500">Loading files…</p> : documents.length ? <DocumentLibrary documents={documents} /> : <div className="mt-5"><EmptyState title="No available files" message="Uploaded files will appear here when available." /></div>}</section>}
   </div>;
 }
