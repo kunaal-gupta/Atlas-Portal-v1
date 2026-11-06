@@ -14,7 +14,7 @@ const toolTones: Record<string, string> = {
   outlook: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300',
   forms: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
 };
-const panel = 'min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5';
+const panel = 'home-panel min-w-0';
 function eventStart(event: OutlookEvent) {
   const raw = event.start.dateTime;
   if (event.isAllDay) return new Date(`${raw.slice(0, 10)}T12:00:00`);
@@ -54,14 +54,14 @@ export default function AgentWorkspace() {
   const favorites = preferences.tools.filter(tool => tool.favorite);
 
   return <section aria-labelledby="workspace-heading" className="min-w-0 lg:col-span-2">
-    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 id="workspace-heading" className="text-xl font-bold">Your workspace</h2><p className="text-xs text-slate-500 dark:text-slate-400">Personalized tools and resources</p></div>
-    <section id="agent-toolkit" aria-labelledby="toolkit-heading" className={`${panel} !p-3 sm:!p-4`} onKeyDown={event => { if (editing && event.key === 'Escape') { event.stopPropagation(); closeCustomize(); } }}>
-      <div className="mb-2 flex items-center justify-between gap-3"><h3 id="toolkit-heading" className="text-lg font-semibold">Quick access / Agent toolkit</h3><button ref={customize} type="button" onClick={editing ? closeCustomize : openCustomize} aria-expanded={editing} aria-controls="toolkit-customization" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300"><Settings2 className="h-4 w-4" />{editing ? 'Close' : 'Customize'}</button></div>
+    <h2 id="workspace-heading" className="sr-only">Your workspace</h2>
+    <section id="agent-toolkit" aria-labelledby="toolkit-heading" className={panel} onKeyDown={event => { if (editing && event.key === 'Escape') { event.stopPropagation(); closeCustomize(); } }}>
+      <div className="mb-2 flex items-center justify-between gap-3"><h3 id="toolkit-heading" className="home-section-title">Agent toolkit</h3><button ref={customize} type="button" onClick={editing ? closeCustomize : openCustomize} aria-expanded={editing} aria-controls="toolkit-customization" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300"><Settings2 className="h-4 w-4" />{editing ? 'Close' : 'Customize'}</button></div>
       {!favorites.length && <p className="py-3 text-sm text-slate-500">Choose your favorite tools with Customize.</p>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">{favorites.map(tool => {
         const Icon = icons[tool.id as keyof typeof icons] || FileText;
         const content = <><span data-tool-icon={tool.id} className={`grid h-8 w-8 place-items-center rounded-lg ${toolTones[tool.id] || toolTones.forms}`}><Icon className="h-5 w-5" /></span><span className="text-sm font-semibold">{tool.name}</span>{!tool.href && <span className="text-xs text-indigo-700 dark:text-indigo-300">Set link</span>}{tool.id === 'skyslope' && tool.href.includes('google.com/search') && <span className="text-xs text-slate-500">Search shortcut</span>}</>;
-        const style = 'portal-interactive flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-lg border border-transparent px-2 py-1 text-center hover:border-slate-200 hover:bg-slate-50 dark:hover:bg-indigo-950';
+        const style = 'portal-interactive flex min-h-16 flex-col items-center justify-center gap-1 rounded-lg border border-transparent px-2 py-1 text-center hover:border-slate-200 hover:bg-slate-50 dark:hover:bg-indigo-950';
         return tool.href ? <a key={tool.id} href={tool.href} target={tool.href.startsWith('/') ? undefined : '_blank'} rel="noreferrer" className={style}>{content}</a> : <button key={tool.id} type="button" onClick={openCustomize} className={style}>{content}</button>;
       })}</div>
       {editing && <form id="toolkit-customization" className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700" onSubmit={event => {
@@ -75,9 +75,9 @@ export default function AgentWorkspace() {
         <div className="mt-4 flex gap-2"><button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save favorites</button><button type="button" onClick={closeCustomize} className="rounded-lg px-3 py-2 text-sm text-slate-500">Cancel</button></div>
       </form>}
     </section>
-    <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
+    <div className="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section id="upcoming-events" aria-labelledby="upcoming-heading" className={panel}>
-        <div className="mb-3 flex items-center justify-between gap-2"><h3 id="upcoming-heading" className="text-lg font-semibold">Upcoming events & training</h3><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
+        <div className="mb-3 flex items-center justify-between gap-2"><h3 id="upcoming-heading" className="home-section-title">Upcoming events & training</h3><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
         {calendarState === 'loading' && <p role="status" className="py-4 text-sm text-slate-500">Loading upcoming events…</p>}
         {calendarState === 'error' && <div className="py-3"><p className="text-sm text-slate-500">Upcoming events are unavailable. Check the calendar connection.</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-2 rounded-lg text-sm font-semibold text-indigo-700 dark:text-indigo-300">Try again</button></div>}
         {calendarState === 'ready' && !events.length && <p className="py-4 text-sm text-slate-500">No upcoming events in the next 90 days.</p>}
