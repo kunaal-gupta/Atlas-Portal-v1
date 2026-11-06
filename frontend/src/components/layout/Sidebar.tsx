@@ -35,7 +35,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
         setMobileOpen(false);
       }
     }}>
-      <div className="mx-auto max-w-[1420px] rounded-2xl bg-white/5 px-2 sm:rounded-full">
+      <div className="mx-auto max-w-[1420px] rounded-2xl bg-white/5 px-2 sm:rounded-lg">
         <button ref={mobileToggle} type="button" aria-expanded={mobileOpen} aria-controls="portal-mobile-navigation" onClick={() => setMobileOpen(!mobileOpen)} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold text-slate-200 sm:hidden">
           <span className="flex items-center gap-2"><Menu className="h-4 w-4 text-indigo-600" />{activeGroup?.name || 'Browse portal'}</span>{mobileOpen ? <X className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
@@ -44,7 +44,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
             const expanded = openGroup === group.name;
             const selected = activeGroup?.name === group.name;
             return <div key={group.name} className="relative" onPointerEnter={event => { if (event.pointerType === 'mouse') setOpenGroup(group.name); }} onPointerLeave={event => { if (event.pointerType === 'mouse') setOpenGroup(null); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpenGroup(null); }}>
-              <div className={`flex items-center rounded-full ${selected ? 'bg-white/10' : ''}`}><a href={categoryPath(group)} aria-current={path === categoryPath(group) ? 'page' : undefined} className="flex min-h-11 items-center rounded-full py-2 pl-4 pr-2 text-xs font-semibold text-slate-200 hover:text-white">{group.name}</a><button type="button" aria-label={`Show ${group.name} pages`} aria-expanded={expanded} aria-controls={`portal-category-${index}`} onClick={() => setOpenGroup(expanded ? null : group.name)} className={`flex min-h-11 items-center gap-2 rounded-full px-2 text-xs font-semibold transition-colors ${selected || expanded ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}>
+              <div className={`flex items-center rounded-lg ${selected ? 'bg-white/10' : ''}`}><a href={categoryPath(group)} aria-current={path === categoryPath(group) ? 'page' : undefined} className="flex min-h-11 items-center rounded-lg py-2 pl-4 pr-2 text-xs font-semibold text-slate-200 hover:text-white">{group.name}</a><button type="button" aria-label={`Show ${group.name} pages`} aria-expanded={expanded} aria-controls={`portal-category-${index}`} onClick={() => setOpenGroup(expanded ? null : group.name)} className={`flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold transition-colors ${selected || expanded ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}>
                 <ChevronDown className={`h-3.5 w-3.5 motion-safe:transition-transform ${expanded ? 'rotate-180' : ''}`} />
               </button></div>
               {expanded && <div id={`portal-category-${index}`} className={`absolute top-full z-30 w-64 max-w-[calc(100vw-2.5rem)] pt-2 ${index >= groups.length / 2 ? 'right-0' : 'left-0'}`}>
