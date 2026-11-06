@@ -6,6 +6,7 @@ import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
 import Sidebar, { categoryPath, type NavigationGroup } from './components/layout/Sidebar';
 import HomeDashboard from './components/HomeDashboard';
+import WorkspaceTracker from './components/WorkspaceTracker';
 import CategoryOverview from './components/shared/CategoryOverview';
 import MarketPage from './pages/numbers/MarketPage';
 import AgentPage from './pages/numbers/AgentPage';
@@ -48,6 +49,8 @@ const navigation: NavigationGroup[] = [
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
+const workspacePages = navigation.flatMap(group => [{ name: group.name, path: categoryPath(group) }, ...group.links]);
+
 function HomePage() {
   const user = usePortalUser();
   const displayName = user?.name.trim() || '';
@@ -71,5 +74,5 @@ export default function App() {
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
   const category = navigation.find(group => categoryPath(group) === window.location.pathname);
-  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#f5f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#f5f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><WorkspaceTracker pages={workspacePages} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }
