@@ -4,8 +4,9 @@ import { getSession, type PortalUser } from './api/auth';
 import { AuthContext, usePortalUser } from './components/auth/AuthContext';
 import LoginPage from './components/auth/LoginPage';
 import Header from './components/layout/Header';
-import Sidebar, { type NavigationGroup } from './components/layout/Sidebar';
+import Sidebar, { categoryPath, type NavigationGroup } from './components/layout/Sidebar';
 import HomeDashboard from './components/HomeDashboard';
+import CategoryOverview from './components/shared/CategoryOverview';
 import MarketPage from './pages/numbers/MarketPage';
 import AgentPage from './pages/numbers/AgentPage';
 import FirmPage from './pages/numbers/FirmPage';
@@ -66,5 +67,6 @@ export default function App() {
   if (loading) return <div className="grid min-h-screen place-items-center bg-slate-50 text-indigo-600 dark:bg-slate-950 dark:text-indigo-300"><LoaderCircle className="h-8 w-8 animate-spin" aria-label="Loading Atlas" /></div>;
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
-  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#f5f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main>{Page ? <Page /> : <HomePage />}</main><footer className="mt-10 border-t border-slate-200 bg-white py-8 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
+  const category = navigation.find(group => categoryPath(group) === window.location.pathname);
+  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#f5f7f9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</div></footer></div></AuthContext.Provider>;
 }
