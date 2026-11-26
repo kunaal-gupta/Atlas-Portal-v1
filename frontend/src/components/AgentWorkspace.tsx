@@ -1,7 +1,6 @@
 import { BarChart3, CalendarDays, Clock3, ExternalLink, FileCheck2, FileText, FolderOpen, Home, Mail, MapPin, Settings2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getCalendarEvents, type OutlookEvent } from '../api/calendar';
-import MiniCalculators from './MiniCalculators';
 import { usePortalUser } from './auth/AuthContext';
 import { useWorkspacePreferences, validWorkspaceUrl, type ToolkitLink } from '../lib/workspace';
 
@@ -53,12 +52,12 @@ export default function AgentWorkspace() {
   const closeCustomize = () => { setEditing(false); customize.current?.focus(); };
   const favorites = preferences.tools.filter(tool => tool.favorite);
 
-  return <section aria-labelledby="workspace-heading" className="min-w-0 lg:col-span-2">
+  return <section aria-labelledby="workspace-heading" className="grid min-w-0 gap-5">
     <h2 id="workspace-heading" className="sr-only">Your workspace</h2>
     <section id="agent-toolkit" aria-labelledby="toolkit-heading" className={panel} onKeyDown={event => { if (editing && event.key === 'Escape') { event.stopPropagation(); closeCustomize(); } }}>
       <div className="mb-2 flex items-center justify-between gap-3"><h3 id="toolkit-heading" className="home-section-title">Agent toolkit</h3><button ref={customize} type="button" onClick={editing ? closeCustomize : openCustomize} aria-expanded={editing} aria-controls="toolkit-customization" className="inline-flex min-h-10 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300"><Settings2 className="h-4 w-4" />{editing ? 'Close' : 'Customize'}</button></div>
       {!favorites.length && <p className="py-3 text-sm text-slate-500">Choose your favorite tools with Customize.</p>}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">{favorites.map(tool => {
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{favorites.map(tool => {
         const Icon = icons[tool.id as keyof typeof icons] || FileText;
         const content = <><span data-tool-icon={tool.id} className={`grid h-8 w-8 place-items-center rounded-lg ${toolTones[tool.id] || toolTones.forms}`}><Icon className="h-5 w-5" /></span><span className="text-sm font-semibold">{tool.name}</span>{!tool.href && <span className="text-xs text-indigo-700 dark:text-indigo-300">Set link</span>}{tool.id === 'skyslope' && tool.href.includes('google.com/search') && <span className="text-xs text-slate-500">Search shortcut</span>}</>;
         const style = 'portal-interactive flex min-h-16 flex-col items-center justify-center gap-1 rounded-lg border border-transparent px-2 py-1 text-center hover:border-slate-200 hover:bg-slate-50 dark:hover:bg-indigo-950';
@@ -75,16 +74,13 @@ export default function AgentWorkspace() {
         <div className="mt-4 flex gap-2"><button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save favorites</button><button type="button" onClick={closeCustomize} className="rounded-lg px-3 py-2 text-sm text-slate-500">Cancel</button></div>
       </form>}
     </section>
-    <div className="mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <section id="upcoming-events" aria-labelledby="upcoming-heading" className={panel}>
-        <div className="mb-3 flex items-center justify-between gap-2"><h3 id="upcoming-heading" className="home-section-title">Upcoming events & training</h3><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
-        {calendarState === 'loading' && <p role="status" className="py-4 text-sm text-slate-500">Loading upcoming events…</p>}
-        {calendarState === 'error' && <div className="py-3"><p className="text-sm text-slate-500">Upcoming events are unavailable. Check the calendar connection.</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-2 rounded-lg text-sm font-semibold text-indigo-700 dark:text-indigo-300">Try again</button></div>}
-        {calendarState === 'ready' && !events.length && <p className="py-4 text-sm text-slate-500">No upcoming events in the next 90 days.</p>}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">{events.map(event => <article key={event.id} className="flex min-w-0 items-start gap-3 rounded-lg border border-slate-100 p-3 dark:border-slate-700"><time dateTime={eventStart(event).toISOString()} className="w-12 shrink-0 rounded-lg bg-indigo-50 px-2 py-2 text-center dark:bg-indigo-950"><span className="block text-xs uppercase text-indigo-700 dark:text-indigo-300">{eventStart(event).toLocaleDateString(undefined, { month: 'short' })}</span><span className="block text-xl font-bold">{eventStart(event).getDate()}</span></time><div className="min-w-0 flex-1"><h4 className="text-sm font-semibold">{event.subject}</h4><p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Clock3 className="h-3.5 w-3.5 shrink-0" />{eventTime(event)}</p><p className="mt-1 flex items-start gap-1 text-xs text-slate-500"><MapPin className="h-3.5 w-3.5 shrink-0" />{event.location?.displayName || 'Location to be confirmed'}</p>{event.webLink && validWorkspaceUrl(event.webLink) ? <a href={event.webLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">Open in calendar<ExternalLink className="h-3 w-3" /></a> : <a href="/resources/calendar/" className="mt-2 inline-block text-xs font-semibold text-indigo-700 dark:text-indigo-300">View calendar</a>}</div></article>)}</div>
-        <a href="/resources/calendar/" className="mt-3 inline-block text-xs font-semibold text-indigo-700 hover:underline dark:text-indigo-300">View full calendar</a>
-      </section>
-      <MiniCalculators />
-    </div>
+    <section id="upcoming-events" aria-labelledby="upcoming-heading" className={panel}>
+      <div className="mb-3 flex items-center justify-between gap-2"><h3 id="upcoming-heading" className="home-section-title">Upcoming events & training</h3><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
+      {calendarState === 'loading' && <p role="status" className="py-4 text-sm text-slate-500">Loading upcoming events…</p>}
+      {calendarState === 'error' && <div className="py-3"><p className="text-sm text-slate-500">Upcoming events are unavailable.</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-2 rounded-lg text-sm font-semibold text-indigo-700 dark:text-indigo-300">Retry</button></div>}
+      {calendarState === 'ready' && !events.length && <p className="py-4 text-sm text-slate-500">No upcoming events in the next 90 days.</p>}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">{events.map(event => <article key={event.id} className="flex min-w-0 items-start gap-3 rounded-lg border border-slate-100 p-3 dark:border-slate-700"><time dateTime={eventStart(event).toISOString()} className="w-12 shrink-0 rounded-lg bg-indigo-50 px-2 py-2 text-center dark:bg-indigo-950"><span className="block text-xs uppercase text-indigo-700 dark:text-indigo-300">{eventStart(event).toLocaleDateString(undefined, { month: 'short' })}</span><span className="block text-xl font-bold">{eventStart(event).getDate()}</span></time><div className="min-w-0 flex-1"><h4 className="text-sm font-semibold">{event.subject}</h4><p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Clock3 className="h-3.5 w-3.5 shrink-0" />{eventTime(event)}</p><p className="mt-1 flex items-start gap-1 text-xs text-slate-500"><MapPin className="h-3.5 w-3.5 shrink-0" />{event.location?.displayName || 'Location to be confirmed'}</p>{event.webLink && validWorkspaceUrl(event.webLink) ? <a href={event.webLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">Open in calendar<ExternalLink className="h-3 w-3" /></a> : <a href="/resources/calendar/" className="mt-2 inline-block text-xs font-semibold text-indigo-700 dark:text-indigo-300">View calendar</a>}</div></article>)}</div>
+      <a href="/resources/calendar/" className="mt-3 inline-block text-xs font-semibold text-indigo-700 hover:underline dark:text-indigo-300">View full calendar</a>
+    </section>
   </section>;
 }

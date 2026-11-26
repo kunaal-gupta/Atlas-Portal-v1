@@ -246,8 +246,6 @@ The three-card news carousel advances every six seconds when additional items ar
 
 ## Homepage charts
 
-Business Insights now uses two standalone chart cards: monthly volume/closed-deal bars and an active-inventory donut with property-type/bedroom tabs, count/percentage modes, and selectable legends. Controls work with keyboard and touch. Charts remain below the homepage calculators.
-
 The optional reporting response can additionally include:
 
 ```json
