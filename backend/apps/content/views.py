@@ -243,10 +243,19 @@ class RequestLoginCodeView(APIView):
         login_code = LoginCode(user=user, expires_at=timezone.now() + timedelta(minutes=10))
         login_code.set_code(code)
         login_code.save()
-        try:
-            send_login_code(user.email, code)
-        except LoginEmailError as error:
-            logger.warning("%s", error)
+        send_mail(
+            "Your Atlas login code",
+            f"Your one-time Atlas login code is {code}. It expires in 10 minutes.\n\nIf you did not request this code, you can ignore this email.",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=(
+                "<h2>Your Atlas login code</h2>"
+                "<p>Enter this one-time code to sign in to Atlas:</p>"
+                f'<p style="font-size:24px;letter-spacing:6px"><strong>{code}</strong></p>'
+                "<p>This code expires in 10 minutes and can only be used once.</p>"
+                "<p>If you did not request this code, you can ignore this email.</p>"
+            ),
+        )
         return Response(generic)
 
 

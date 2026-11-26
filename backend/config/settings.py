@@ -7,6 +7,15 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-development-key-change-
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "DJANGO_CSRF_TRUSTED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000" if DEBUG else "",
+    ).split(",")
+    if origin.strip()
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -59,13 +68,18 @@ MICROSOFT_TENANT_ID = os.environ.get("MICROSOFT_TENANT_ID", "")
 MICROSOFT_CLIENT_ID = os.environ.get("MICROSOFT_CLIENT_ID", "")
 MICROSOFT_CLIENT_SECRET = os.environ.get("MICROSOFT_CLIENT_SECRET", "")
 OUTLOOK_CALENDAR_MAILBOX = os.environ.get("OUTLOOK_CALENDAR_MAILBOX", "technology@mozaicrealty.ca")
-ATLAS_OTP_EMAIL_PROVIDER = os.environ.get("ATLAS_OTP_EMAIL_PROVIDER", "django").strip().lower()
-ATLAS_OTP_GRAPH_TENANT_ID = os.environ.get("ATLAS_OTP_GRAPH_TENANT_ID", "")
-ATLAS_OTP_GRAPH_CLIENT_ID = os.environ.get("ATLAS_OTP_GRAPH_CLIENT_ID", "")
-ATLAS_OTP_GRAPH_CLIENT_SECRET = os.environ.get("ATLAS_OTP_GRAPH_CLIENT_SECRET", "")
-ATLAS_OTP_GRAPH_MAILBOX = os.environ.get("ATLAS_OTP_GRAPH_MAILBOX", "")
+AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID", "")
+AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID", "")
+AZURE_CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET", "")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "")
+
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Atlas Portal <no-reply@localhost>")
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "apps.content.graph_email.GraphEmailBackend"
+    if all((AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, EMAIL_FROM))
+    else "django.core.mail.backends.console.EmailBackend",
+)
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")

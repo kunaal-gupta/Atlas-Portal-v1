@@ -117,6 +117,35 @@ Django server console. Production must configure a working email backend, for
 example `django.core.mail.backends.smtp.EmailBackend` with the SMTP variables
 above.
 
+### Send login codes through Microsoft Graph
+
+On your local machine or deployment server, set these variables in the Django
+process environment:
+
+| Variable | Purpose |
+| --- | --- |
+| `AZURE_TENANT_ID` | Microsoft Entra tenant ID |
+| `AZURE_CLIENT_ID` | App registration client ID |
+| `AZURE_CLIENT_SECRET` | App registration client secret value |
+| `EMAIL_FROM` | Microsoft 365 sender mailbox address |
+
+Atlas selects the Graph email backend when all four variables are set.
+To require Graph delivery explicitly, set
+`EMAIL_BACKEND=apps.content.graph_email.GraphEmailBackend`. This makes a
+missing variable an error when sending mail.
+
+The app needs application-level Microsoft Graph mail sending authorization for
+the sender mailbox. If Radar's existing app is approved for that same mailbox
+and use, it can also send for Atlas. Keep credentials on the backend and scope
+mailbox access to the intended sender. Restart Django after setting the
+variables. Use an approved Atlas account to request a code, even in local
+development. The Graph credentials above are independent of Outlook calendar
+settings.
+
+Django trusts Vite's localhost and 127.0.0.1 origins on port 3000 when
+`DJANGO_DEBUG=true`. Set `DJANGO_CSRF_TRUSTED_ORIGINS` to a comma-separated
+list of explicit origins if your frontend uses a different origin.
+
 ### Outlook calendar connection
 
 The Resources → Calendar page reads and writes the mailbox's Outlook calendar

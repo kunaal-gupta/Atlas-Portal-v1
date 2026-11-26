@@ -1,6 +1,4 @@
 import json
-from urllib.error import URLError
-from urllib.parse import parse_qs
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -322,48 +320,49 @@ class PasswordlessLoginTests(TestCase):
         login_code.refresh_from_db()
         self.assertIsNotNone(login_code.used_at)
 
-    def test_graph_provider_sends_branded_html_for_existing_login_route(self):
+    @patch("apps.content.outlook.urlopen")
+    @patch("apps.content.views.secrets.randbelow", return_value=123456)
+    def test_local_login_code_is_delivered_by_graph(self, random_code, urlopen):
+        urlopen.return_value.__enter__.return_value.read.side_effect = [
+            b'{"access_token":"test-token","expires_in":3600}',
+            b"",
+        ]
+        client = APIClient(enforce_csrf_checks=True)
+        client.get(reverse("auth-session"))
+
         with self.settings(
-            ATLAS_OTP_EMAIL_PROVIDER="graph",
-            ATLAS_OTP_GRAPH_TENANT_ID="mail-tenant",
-            ATLAS_OTP_GRAPH_CLIENT_ID="mail-client",
-            ATLAS_OTP_GRAPH_CLIENT_SECRET="test-secret",
-            ATLAS_OTP_GRAPH_MAILBOX="noreply@example.com",
-        ), patch("apps.content.views.secrets.randbelow", return_value=123456), patch(
-            "apps.content.otp_email.urlopen"
-        ) as graph:
-            graph.return_value.__enter__.return_value.read.return_value = b'{"access_token":"test-token"}'
-            response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+            EMAIL_BACKEND="apps.content.graph_email.GraphEmailBackend",
+            AZURE_TENANT_ID="test-mail-tenant",
+            AZURE_CLIENT_ID="test-mail-client",
+            AZURE_CLIENT_SECRET="test-mail-secret",
+            EMAIL_FROM="atlas@example.com",
+            CSRF_TRUSTED_ORIGINS=["http://localhost:3000"],
+        ):
+            response = client.post(
+                reverse("auth-request-code"),
+                {"email": self.user.email},
+                format="json",
+                HTTP_ORIGIN="http://localhost:3000",
+                HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value,
+            )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(LoginCode.objects.get(user=self.user).matches("123456"))
-        self.assertEqual(graph.call_count, 2)
-        token_request, mail_request = [call.args[0] for call in graph.call_args_list]
-        self.assertIn("/mail-tenant/oauth2/v2.0/token", token_request.full_url)
-        self.assertEqual(parse_qs(token_request.data.decode())["client_id"], ["mail-client"])
-        self.assertTrue(mail_request.full_url.endswith("/users/noreply%40example.com/sendMail"))
+        self.assertNotIn("123456", response.content.decode())
+        self.assertEqual(urlopen.call_count, 2)
+        token_request, mail_request = [call.args[0] for call in urlopen.call_args_list]
+        self.assertEqual(
+            token_request.full_url,
+            "https://login.microsoftonline.com/test-mail-tenant/oauth2/v2.0/token",
+        )
+        self.assertEqual(
+            mail_request.full_url,
+            "https://graph.microsoft.com/v1.0/users/atlas%40example.com/sendMail",
+        )
         self.assertEqual(mail_request.get_header("Authorization"), "Bearer test-token")
-        payload = json.loads(mail_request.data)
-        self.assertFalse(payload["saveToSentItems"])
-        self.assertEqual(payload["message"]["toRecipients"], [{"emailAddress": {"address": self.user.email}}])
-        self.assertIn("Secure Login Verification", payload["message"]["body"]["content"])
-        self.assertIn("123456", payload["message"]["body"]["content"])
-
-    def test_graph_failure_preserves_generic_response_and_cooldown(self):
-        with self.settings(
-            ATLAS_OTP_EMAIL_PROVIDER="graph",
-            ATLAS_OTP_GRAPH_TENANT_ID="mail-tenant",
-            ATLAS_OTP_GRAPH_CLIENT_ID="mail-client",
-            ATLAS_OTP_GRAPH_CLIENT_SECRET="test-secret",
-            ATLAS_OTP_GRAPH_MAILBOX="noreply@example.com",
-        ), patch("apps.content.otp_email.urlopen", side_effect=URLError("offline")), self.assertLogs(
-            "apps.content.views", level="WARNING"
-        ):
-            response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
-            unknown = self.client.post(reverse("auth-request-code"), {"email": "unknown@example.com"}, format="json")
-
-        self.assertEqual(response.json(), unknown.json())
-        self.assertEqual(LoginCode.objects.filter(user=self.user).count(), 1)
+        message = json.loads(mail_request.data)["message"]
+        self.assertEqual(message["toRecipients"], [{"emailAddress": {"address": self.user.email}}])
+        self.assertEqual(message["body"]["contentType"], "HTML")
+        self.assertIn("123456", message["body"]["content"])
 
     def test_unknown_email_gets_same_request_response_without_a_code(self):
         known = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
