@@ -1,6 +1,8 @@
 import { BarChart3, CalendarDays, Clock3, ExternalLink, FileCheck2, FileText, FolderOpen, Home, Mail, MapPin, Settings2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getCalendarEvents, type OutlookEvent } from '../api/calendar';
+import PortalDirectory from './PortalDirectory';
+import type { NavigationGroup } from './layout/Sidebar';
 import { usePortalUser } from './auth/AuthContext';
 import { useWorkspacePreferences, validWorkspaceUrl, type ToolkitLink } from '../lib/workspace';
 
@@ -26,7 +28,7 @@ function eventTime(event: OutlookEvent) {
   return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', ...(naiveNonUtc ? {} : { timeZoneName: 'short' as const }) }).format(eventStart(event)) + (naiveNonUtc ? ` (${event.start.timeZone})` : '');
 }
 
-export default function AgentWorkspace() {
+export default function AgentWorkspace({ groups }: { groups: NavigationGroup[] }) {
   const user = usePortalUser();
   const { preferences, update } = useWorkspacePreferences(user?.email || '');
   const [editing, setEditing] = useState(false);
@@ -74,6 +76,7 @@ export default function AgentWorkspace() {
         <div className="mt-4 flex gap-2"><button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save favorites</button><button type="button" onClick={closeCustomize} className="rounded-lg px-3 py-2 text-sm text-slate-500">Cancel</button></div>
       </form>}
     </section>
+    <PortalDirectory groups={groups} />
     <div className="mt-4">
       <section id="upcoming-events" aria-labelledby="upcoming-heading" className={panel}>
         <div className="mb-3 flex items-center justify-between gap-2"><h3 id="upcoming-heading" className="home-section-title">Upcoming events & training</h3><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
