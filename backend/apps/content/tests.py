@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -317,6 +319,50 @@ class PasswordlessLoginTests(TestCase):
         self.assertTrue(self.client.session.get("_auth_user_id"))
         login_code.refresh_from_db()
         self.assertIsNotNone(login_code.used_at)
+
+    @patch("apps.content.outlook.urlopen")
+    @patch("apps.content.views.secrets.randbelow", return_value=123456)
+    def test_local_login_code_is_delivered_by_graph(self, random_code, urlopen):
+        urlopen.return_value.__enter__.return_value.read.side_effect = [
+            b'{"access_token":"test-token","expires_in":3600}',
+            b"",
+        ]
+        client = APIClient(enforce_csrf_checks=True)
+        client.get(reverse("auth-session"))
+
+        with self.settings(
+            EMAIL_BACKEND="apps.content.graph_email.GraphEmailBackend",
+            AZURE_TENANT_ID="test-mail-tenant",
+            AZURE_CLIENT_ID="test-mail-client",
+            AZURE_CLIENT_SECRET="test-mail-secret",
+            EMAIL_FROM="atlas@example.com",
+            CSRF_TRUSTED_ORIGINS=["http://localhost:3000"],
+        ):
+            response = client.post(
+                reverse("auth-request-code"),
+                {"email": self.user.email},
+                format="json",
+                HTTP_ORIGIN="http://localhost:3000",
+                HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("123456", response.content.decode())
+        self.assertEqual(urlopen.call_count, 2)
+        token_request, mail_request = [call.args[0] for call in urlopen.call_args_list]
+        self.assertEqual(
+            token_request.full_url,
+            "https://login.microsoftonline.com/test-mail-tenant/oauth2/v2.0/token",
+        )
+        self.assertEqual(
+            mail_request.full_url,
+            "https://graph.microsoft.com/v1.0/users/atlas%40example.com/sendMail",
+        )
+        self.assertEqual(mail_request.get_header("Authorization"), "Bearer test-token")
+        message = json.loads(mail_request.data)["message"]
+        self.assertEqual(message["toRecipients"], [{"emailAddress": {"address": self.user.email}}])
+        self.assertEqual(message["body"]["contentType"], "HTML")
+        self.assertIn("123456", message["body"]["content"])
 
     def test_unknown_email_gets_same_request_response_without_a_code(self):
         known = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")

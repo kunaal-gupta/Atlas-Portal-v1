@@ -24,18 +24,14 @@ class OutlookApiError(Exception):
         self.status = status
 
 
-class OutlookCalendarClient:
+class MicrosoftGraphClient:
     graph_url = "https://graph.microsoft.com/v1.0"
+    request_error = "Microsoft Graph rejected the request."
 
-    def __init__(self):
-        self.tenant_id = settings.MICROSOFT_TENANT_ID
-        self.client_id = settings.MICROSOFT_CLIENT_ID
-        self.client_secret = settings.MICROSOFT_CLIENT_SECRET
-        self.mailbox = settings.OUTLOOK_CALENDAR_MAILBOX
-        if not all((self.tenant_id, self.client_id, self.client_secret, self.mailbox)):
-            raise OutlookConfigurationError(
-                "Outlook calendar is not configured. Add the Microsoft 365 credentials to the server environment."
-            )
+    def __init__(self, tenant_id, client_id, client_secret):
+        self.tenant_id = tenant_id
+        self.client_id = client_id
+        self.client_secret = client_secret
 
     def _token(self):
         cache_key = f"outlook-token:{self.tenant_id}:{self.client_id}"
@@ -48,7 +44,7 @@ class OutlookCalendarClient:
             "scope": "https://graph.microsoft.com/.default",
             "grant_type": "client_credentials",
         }).encode()
-        data = self._request(
+        data = self.request(
             f"https://login.microsoftonline.com/{quote(self.tenant_id, safe='')}/oauth2/v2.0/token",
             method="POST",
             data=payload,
@@ -59,7 +55,7 @@ class OutlookCalendarClient:
         cache.set(cache_key, token, max(60, int(data.get("expires_in", 3600)) - 120))
         return token
 
-    def _request(self, url, method="GET", data=None, authenticated=True, content_type="application/json"):
+    def request(self, url, method="GET", data=None, authenticated=True, content_type="application/json"):
         headers = {"Accept": "application/json"}
         if authenticated:
             headers["Authorization"] = f"Bearer {self._token()}"
@@ -78,9 +74,24 @@ class OutlookCalendarClient:
             except (ValueError, AttributeError):
                 detail = None
             status = error.code if error.code in (400, 404, 409) else 502
-            raise OutlookApiError(detail or "Microsoft Outlook rejected the calendar request.", status) from error
+            raise OutlookApiError(detail or self.request_error, status) from error
         except URLError as error:
             raise OutlookApiError("Microsoft Outlook is temporarily unavailable.") from error
+
+class OutlookCalendarClient(MicrosoftGraphClient):
+    request_error = "Microsoft Outlook rejected the calendar request."
+
+    def __init__(self):
+        super().__init__(
+            settings.MICROSOFT_TENANT_ID,
+            settings.MICROSOFT_CLIENT_ID,
+            settings.MICROSOFT_CLIENT_SECRET,
+        )
+        self.mailbox = settings.OUTLOOK_CALENDAR_MAILBOX
+        if not all((self.tenant_id, self.client_id, self.client_secret, self.mailbox)):
+            raise OutlookConfigurationError(
+                "Outlook calendar is not configured. Add the Microsoft 365 credentials to the server environment."
+            )
 
     @property
     def events_url(self):
@@ -97,16 +108,16 @@ class OutlookCalendarClient:
         url = f"{self.graph_url}/users/{quote(self.mailbox, safe='')}/calendarView?{query}"
         events = []
         while url:
-            result = self._request(url)
+            result = self.request(url)
             events.extend(result.get("value", []))
             url = result.get("@odata.nextLink")
         return events
 
     def create_event(self, event):
-        return self._request(self.events_url, method="POST", data=event)
+        return self.request(self.events_url, method="POST", data=event)
 
     def update_event(self, event_id, event):
-        return self._request(f"{self.events_url}/{quote(event_id, safe='')}", method="PATCH", data=event)
+        return self.request(f"{self.events_url}/{quote(event_id, safe='')}", method="PATCH", data=event)
 
     def delete_event(self, event_id):
-        self._request(f"{self.events_url}/{quote(event_id, safe='')}", method="DELETE")
+        self.request(f"{self.events_url}/{quote(event_id, safe='')}", method="DELETE")
