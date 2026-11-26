@@ -72,7 +72,7 @@ function HomePage() {
       <div className="flex items-center justify-end gap-2" aria-label="Quick actions"><a href="/resources/calendar/" aria-label="Calendar" title="Calendar" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><CalendarDays aria-hidden="true" className="h-5 w-5" /></a><a href="/the-numbers/agent/" aria-label="Agent directory" title="Agent directory" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><Users aria-hidden="true" className="h-5 w-5" /></a><a href="/the-numbers/market/" aria-label="Explore market" title="Explore market" className="portal-interactive grid h-10 w-10 place-items-center rounded-lg bg-indigo-600 text-white shadow-sm hover:bg-indigo-700"><BarChart3 aria-hidden="true" className="h-5 w-5" /></a></div>
     </section>
     <RequiredActionBanner />
-    <HomeDashboard />
+    <HomeDashboard groups={navigation} />
   </div></CompanyReportingProvider>;
 }
 

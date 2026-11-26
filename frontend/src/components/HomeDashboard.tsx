@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { getNews } from '../api/news';
 import AgentWorkspace from './AgentWorkspace';
+import type { NavigationGroup } from './layout/Sidebar';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
 type NewsItem = NewsCardItem & { accent: string };
@@ -15,7 +16,7 @@ const fallbackNews: NewsItem[] = [
   { id: 'outside-2', title: 'Five neighbourhood trends clients are asking about', excerpt: 'Stay ahead with a concise overview of the local signals shaping this season’s decisions.', source: 'Local market desk', date: 'Sep 16', type: 'Outside', href: '/neighbourhoods/hoodq/', accent: 'from-indigo-700 via-indigo-700 to-indigo-800' },
 ];
 
-export default function HomeDashboard() {
+export default function HomeDashboard({ groups }: { groups: NavigationGroup[] }) {
   const [news, setNews] = useState(fallbackNews);
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -63,6 +64,6 @@ export default function HomeDashboard() {
       <div className="mt-1 flex justify-center gap-1.5" aria-label="News pages">{news.map((_, index) => <button key={index} onClick={() => setSlide(index)} aria-label={`Show news item ${index + 1}`} aria-current={slide === index ? 'true' : undefined} className="group grid h-5 w-6 place-items-center rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span className={`h-1 rounded-full transition-all ${slide === index ? 'w-5 bg-indigo-600' : 'w-1.5 bg-slate-300 group-hover:bg-indigo-400 dark:bg-slate-700'}`} /></button>)}</div>
     </section>
 
-    <AgentWorkspace />
+    <AgentWorkspace groups={groups} />
   </div>;
 }
