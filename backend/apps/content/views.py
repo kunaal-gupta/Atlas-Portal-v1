@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
+import logging
 import secrets
 from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.middleware.csrf import get_token
 from django.utils import timezone
@@ -13,9 +13,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Agent, Document, LoginCode, News
+from .otp_email import LoginEmailError, send_login_code
 from .outlook import OutlookApiError, OutlookCalendarClient, OutlookConfigurationError
 from .permissions import HasPortalAccess, HasPortalWriteAccess, get_portal_access
 from .serializers import AgentSerializer, DocumentSerializer, NewsSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 def calendar_error_response(error):
