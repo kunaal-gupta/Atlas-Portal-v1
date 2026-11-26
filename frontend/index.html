@@ -73,9 +73,15 @@
       .category-section > div { max-width: none; margin: 0; padding: 0; }
       .portal-background { background-color: #F3F5F9; background-image: none; }
       .dark .portal-background { background-color: #142231; background-image: none; }
-      .welcome-surface { background: linear-gradient(105deg, #E8F5F6 0%, #f4fafb 48%, #ffffff 100%); border: 1px solid transparent; border-radius: 24px; }
-      .dark .welcome-surface { background: linear-gradient(105deg, #14363b 0%, #1c2c3d 80%); border-color: #30465d; }
-      .home-page, .home-page h1, .home-page h2, .home-page h3, .home-page h4, .home-page button { font-family: 'DM Sans', system-ui, sans-serif; }
+      .portal-background:has(.home-page) { background-color: #f7f6f2; }
+      .dark .portal-background:has(.home-page) { background-color: #142231; }
+      .welcome-surface { background: #eeece5; border: 1px solid #e1ddd2; border-radius: 16px; }
+      .dark .welcome-surface { background: #1c2c3d; border-color: #30465d; }
+      .home-page .welcome-surface h1 { font-family: Georgia, serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 400; line-height: 1.08; letter-spacing: -0.04em; }
+      .home-quick-link { display: inline-flex; min-height: 40px; align-items: center; gap: 7px; border: 1px solid #d7d1c5; border-radius: 8px; background: #fff; padding: 0 10px; font-size: 13px; font-weight: 600; }
+      .home-quick-link:hover { border-color: #8b89a9; color: #373066; }
+      .dark .home-quick-link { border-color: #30465d; background: #101827; }
+      .dark .home-quick-link:hover { color: #c7d2fe; }
       .home-panel { padding: 16px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px rgb(16 24 39 / 0.035); }
       .dark .home-panel { border-color: #30465d; background: #101827; box-shadow: none; }
       .insight-chart-card { --chart-navy: #101827; padding: 20px; border: 1px solid #E2E8F0; border-radius: 24px; background: #fff; box-shadow: 0 12px 36px rgb(16 24 39 / 0.08); }
