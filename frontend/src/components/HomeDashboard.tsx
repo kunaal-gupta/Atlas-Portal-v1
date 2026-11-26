@@ -3,7 +3,6 @@ import {
   ChevronLeft, ChevronRight, Pause, Play,
 } from 'lucide-react';
 import { getNews } from '../api/news';
-import BusinessInsights from './BusinessInsights';
 import AgentWorkspace from './AgentWorkspace';
 import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
@@ -65,7 +64,5 @@ export default function HomeDashboard() {
     </section>
 
     <AgentWorkspace />
-    <BusinessInsights />
-
   </div>;
 }
