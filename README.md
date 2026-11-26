@@ -146,6 +146,27 @@ Django trusts Vite's localhost and 127.0.0.1 origins on port 3000 when
 `DJANGO_DEBUG=true`. Set `DJANGO_CSRF_TRUSTED_ORIGINS` to a comma-separated
 list of explicit origins if your frontend uses a different origin.
 
+#### Local setup on Windows with Radar's Microsoft Graph app
+
+From the Atlas `backend` directory, run these commands in PowerShell. Enter
+the client secret value at the hidden prompt, then request a code at
+`http://localhost:3000` using an approved Atlas account.
+
+```powershell
+$env:EMAIL_BACKEND = "apps.content.graph_email.GraphEmailBackend"
+$env:AZURE_TENANT_ID = "a5a1a2d3-371c-45d8-91a4-605dc81b736f"
+$env:AZURE_CLIENT_ID = "5e1453c5-91f9-4740-924e-fbb79f09574e"
+$env:EMAIL_FROM = "noreply@radarre.tech"
+$secret = Read-Host "Microsoft Graph client secret" -AsSecureString
+$env:AZURE_CLIENT_SECRET = [System.Net.NetworkCredential]::new("", $secret).Password
+Remove-Variable secret
+py manage.py runserver
+```
+
+These settings apply to the current PowerShell session and its child
+processes. Graph uses the Entra client secret for authentication, so this
+configuration requires no SMTP username or password.
+
 ### Outlook calendar connection
 
 The Resources → Calendar page reads and writes the mailbox's Outlook calendar
