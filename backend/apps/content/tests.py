@@ -364,6 +364,20 @@ class PasswordlessLoginTests(TestCase):
         self.assertEqual(message["body"]["contentType"], "HTML")
         self.assertIn("123456", message["body"]["content"])
 
+    @patch("apps.content.views.send_mail", side_effect=[OSError("Mail unavailable"), 1])
+    def test_failed_email_does_not_block_immediate_retry(self, send_mail):
+        url = reverse("auth-request-code")
+        payload = {"email": self.user.email}
+
+        with self.assertRaises(OSError):
+            self.client.post(url, payload, format="json")
+        self.assertFalse(LoginCode.objects.filter(user=self.user).exists())
+
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(send_mail.call_count, 2)
+        self.assertEqual(LoginCode.objects.filter(user=self.user).count(), 1)
+
     def test_unknown_email_gets_same_request_response_without_a_code(self):
         known = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
         unknown = self.client.post(reverse("auth-request-code"), {"email": "unknown@example.com"}, format="json")
