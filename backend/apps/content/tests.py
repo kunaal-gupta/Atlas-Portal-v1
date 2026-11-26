@@ -1,3 +1,7 @@
+import json
+from urllib.error import URLError
+from urllib.parse import parse_qs
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -317,6 +321,49 @@ class PasswordlessLoginTests(TestCase):
         self.assertTrue(self.client.session.get("_auth_user_id"))
         login_code.refresh_from_db()
         self.assertIsNotNone(login_code.used_at)
+
+    def test_graph_provider_sends_branded_html_for_existing_login_route(self):
+        with self.settings(
+            ATLAS_OTP_EMAIL_PROVIDER="graph",
+            ATLAS_OTP_GRAPH_TENANT_ID="mail-tenant",
+            ATLAS_OTP_GRAPH_CLIENT_ID="mail-client",
+            ATLAS_OTP_GRAPH_CLIENT_SECRET="test-secret",
+            ATLAS_OTP_GRAPH_MAILBOX="noreply@example.com",
+        ), patch("apps.content.views.secrets.randbelow", return_value=123456), patch(
+            "apps.content.otp_email.urlopen"
+        ) as graph:
+            graph.return_value.__enter__.return_value.read.return_value = b'{"access_token":"test-token"}'
+            response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(LoginCode.objects.get(user=self.user).matches("123456"))
+        self.assertEqual(graph.call_count, 2)
+        token_request, mail_request = [call.args[0] for call in graph.call_args_list]
+        self.assertIn("/mail-tenant/oauth2/v2.0/token", token_request.full_url)
+        self.assertEqual(parse_qs(token_request.data.decode())["client_id"], ["mail-client"])
+        self.assertTrue(mail_request.full_url.endswith("/users/noreply%40example.com/sendMail"))
+        self.assertEqual(mail_request.get_header("Authorization"), "Bearer test-token")
+        payload = json.loads(mail_request.data)
+        self.assertFalse(payload["saveToSentItems"])
+        self.assertEqual(payload["message"]["toRecipients"], [{"emailAddress": {"address": self.user.email}}])
+        self.assertIn("Secure Login Verification", payload["message"]["body"]["content"])
+        self.assertIn("123456", payload["message"]["body"]["content"])
+
+    def test_graph_failure_preserves_generic_response_and_cooldown(self):
+        with self.settings(
+            ATLAS_OTP_EMAIL_PROVIDER="graph",
+            ATLAS_OTP_GRAPH_TENANT_ID="mail-tenant",
+            ATLAS_OTP_GRAPH_CLIENT_ID="mail-client",
+            ATLAS_OTP_GRAPH_CLIENT_SECRET="test-secret",
+            ATLAS_OTP_GRAPH_MAILBOX="noreply@example.com",
+        ), patch("apps.content.otp_email.urlopen", side_effect=URLError("offline")), self.assertLogs(
+            "apps.content.views", level="WARNING"
+        ):
+            response = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")
+            unknown = self.client.post(reverse("auth-request-code"), {"email": "unknown@example.com"}, format="json")
+
+        self.assertEqual(response.json(), unknown.json())
+        self.assertEqual(LoginCode.objects.filter(user=self.user).count(), 1)
 
     def test_unknown_email_gets_same_request_response_without_a_code(self):
         known = self.client.post(reverse("auth-request-code"), {"email": self.user.email}, format="json")

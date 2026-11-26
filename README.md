@@ -87,6 +87,23 @@ Atlas requires an approved email address and a six-digit, single-use login code.
 Codes expire after 10 minutes, are stored only as password hashes, allow no more
 than five attempts, and are rate-limited to one code per user per minute.
 
+To send login emails through Microsoft Graph, set these values in the Atlas backend deployment environment:
+
+```dotenv
+ATLAS_OTP_EMAIL_PROVIDER=graph
+ATLAS_OTP_GRAPH_TENANT_ID=<mail app directory tenant ID>
+ATLAS_OTP_GRAPH_CLIENT_ID=<mail app application client ID>
+ATLAS_OTP_GRAPH_CLIENT_SECRET=<current secret value from Microsoft Entra>
+ATLAS_OTP_GRAPH_MAILBOX=<sender mailbox address>
+```
+
+Atlas can use the existing Radar mail app. The app needs Microsoft Graph application
+permission to send mail from the configured mailbox, including admin consent
+if using Entra's application `Mail.Send` permission. Store the secret in
+the deployment's secret settings. The Outlook calendar uses its existing
+`MICROSOFT_*` settings. In development, the default `django` provider uses
+the configured Django email backend.
+
 To provision someone, a superuser first creates their Django user under
 **Authentication and Authorization → Users**, ensuring the email address is
 correct. Then add a record under **Content → Portal user access** and choose:

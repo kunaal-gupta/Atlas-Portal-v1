@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
+import logging
 import secrets
 from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
-from django.core.mail import send_mail
 from django.db.models import Q
 from django.middleware.csrf import get_token
 from django.utils import timezone
@@ -13,9 +13,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Agent, Document, LoginCode, News
+from .otp_email import LoginEmailError, send_login_code
 from .outlook import OutlookApiError, OutlookCalendarClient, OutlookConfigurationError
 from .permissions import HasPortalAccess, HasPortalWriteAccess, get_portal_access
 from .serializers import AgentSerializer, DocumentSerializer, NewsSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 def calendar_error_response(error):
@@ -239,12 +243,10 @@ class RequestLoginCodeView(APIView):
         login_code = LoginCode(user=user, expires_at=timezone.now() + timedelta(minutes=10))
         login_code.set_code(code)
         login_code.save()
-        send_mail(
-            "Your Atlas login code",
-            f"Your one-time Atlas login code is {code}. It expires in 10 minutes.\n\nIf you did not request this code, you can ignore this email.",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-        )
+        try:
+            send_login_code(user.email, code)
+        except LoginEmailError as error:
+            logger.warning("%s", error)
         return Response(generic)
 
 
