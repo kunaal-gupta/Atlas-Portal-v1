@@ -146,26 +146,18 @@ Django trusts Vite's localhost and 127.0.0.1 origins on port 3000 when
 `DJANGO_DEBUG=true`. Set `DJANGO_CSRF_TRUSTED_ORIGINS` to a comma-separated
 list of explicit origins if your frontend uses a different origin.
 
-#### Local setup on Windows with Radar's Microsoft Graph app
+#### Configure Atlas once per machine
 
-From the Atlas `backend` directory, run these commands in PowerShell. Enter
-the client secret value at the hidden prompt, then request a code at
-`http://localhost:3000` using an approved Atlas account.
+Copy `backend/.env.example` to `backend/.env` on your laptop and on the AWS
+server. Set `AZURE_CLIENT_SECRET` in each private file to the current secret
+value. The example already contains Radar's tenant ID, app ID, and sender
+address. Django reads `backend/.env` automatically when it starts. Existing
+process environment variables take precedence, including values set by PM2.
 
-```powershell
-$env:EMAIL_BACKEND = "apps.content.graph_email.GraphEmailBackend"
-$env:AZURE_TENANT_ID = "a5a1a2d3-371c-45d8-91a4-605dc81b736f"
-$env:AZURE_CLIENT_ID = "5e1453c5-91f9-4740-924e-fbb79f09574e"
-$env:EMAIL_FROM = "noreply@radarre.tech"
-$secret = Read-Host "Microsoft Graph client secret" -AsSecureString
-$env:AZURE_CLIENT_SECRET = [System.Net.NetworkCredential]::new("", $secret).Password
-Remove-Variable secret
-py manage.py runserver
-```
-
-These settings apply to the current PowerShell session and its child
-processes. Graph uses the Entra client secret for authentication, so this
-configuration requires no SMTP username or password.
+Keep `backend/.env` private. Git ignores it, so deploys preserve the server's
+copy. On the first deploy with this change, install the updated Python
+requirements before restarting Atlas in PM2. Later deploys can reuse the
+existing file. An SMTP password is unnecessary for Microsoft Graph.
 
 ### Outlook calendar connection
 
