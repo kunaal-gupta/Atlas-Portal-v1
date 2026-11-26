@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, LoaderCircle, Users } from 'lucide-react';
+import { BarChart3, CalendarDays, LayoutGrid, LoaderCircle, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getSession, type PortalUser } from './api/auth';
 import { AuthContext, usePortalUser } from './components/auth/AuthContext';
@@ -9,7 +9,6 @@ import FaqPage from './pages/resources/FaqPage';
 import SupportDeskPage from './pages/workspace/SupportDeskPage';
 import IntelligencePage from './pages/neighbourhood/IntelligencePage';
 import HomeDashboard from './components/HomeDashboard';
-import { CompanyReportingProvider } from './components/CompanyReporting';
 import WelcomeMetrics from './components/WelcomeMetrics';
 import RequiredActionBanner from './components/RequiredActionBanner';
 import CategoryOverview from './components/shared/CategoryOverview';
@@ -66,23 +65,22 @@ function HomePage() {
     ? (displayName.toLowerCase() === 'kunaalgupta@hotmail.com' ? 'Kunaal' : displayName.split('@')[0].split(/[._-]/)[0].replace(/^./, letter => letter.toUpperCase()))
     : displayName.split(/\s+/)[0];
   return (
-    <CompanyReportingProvider>
-      <div className="home-page mx-auto max-w-[1360px] px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pt-8">
-        <section aria-label="Welcome" className="welcome-surface flex flex-wrap items-center justify-between gap-5 px-5 py-6 sm:px-8 sm:py-9">
-          <h1 className="min-w-0 break-words">
-            Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}.
-          </h1>
-          <div className="flex flex-wrap gap-2" aria-label="Quick actions">
-            <a href="/resources/calendar/" className="home-quick-link"><CalendarDays aria-hidden="true" className="h-4 w-4" />Calendar</a>
-            <a href="/the-numbers/agent/" className="home-quick-link"><Users aria-hidden="true" className="h-4 w-4" />Agent directory</a>
-            <a href="/the-numbers/market/" className="home-quick-link"><BarChart3 aria-hidden="true" className="h-4 w-4" />Market</a>
-          </div>
-        </section>
-        <RequiredActionBanner />
-        <div className="mt-6"><WelcomeMetrics /></div>
-        <HomeDashboard />
-      </div>
-    </CompanyReportingProvider>
+    <div className="home-page mx-auto max-w-[1360px] px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pt-8">
+      <section aria-label="Welcome" className="welcome-surface flex flex-col items-start justify-end gap-5 px-5 py-7 sm:px-8 sm:py-7">
+        <h1 className="min-w-0 break-words">
+          Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}.
+        </h1>
+        <div className="flex flex-wrap gap-2" aria-label="Quick actions">
+          <a href="#agent-toolkit" className="home-quick-link home-quick-link-primary"><LayoutGrid aria-hidden="true" className="h-4 w-4" />Agent toolkit</a>
+          <a href="/resources/calendar/" className="home-quick-link"><CalendarDays aria-hidden="true" className="h-4 w-4" />Calendar</a>
+          <a href="/the-numbers/agent/" className="home-quick-link"><Users aria-hidden="true" className="h-4 w-4" />Agent directory</a>
+          <a href="/the-numbers/market/" className="home-quick-link"><BarChart3 aria-hidden="true" className="h-4 w-4" />Market</a>
+        </div>
+      </section>
+      <RequiredActionBanner />
+      <div className="mt-6"><WelcomeMetrics /></div>
+      <HomeDashboard />
+    </div>
   );
 }
 
