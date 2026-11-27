@@ -63,3 +63,29 @@ class EdmontonDataTests(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.json()["records"][0]["address"], "12 O'BRIEN AVE NW")
         self.assertIn("'12 O''BRIEN AVE NW%'", parse_qs(urlsplit(fetch.call_args.args[0]).query)["$where"][0])
+
+    @patch("apps.content.city_data.fetch_json")
+    def test_assessment_map_queries_bounded_area_and_returns_only_valid_points(self, fetch):
+        self.client.force_authenticate(self.user)
+        path = "/api/city-data/assessment/map/"
+        self.assertEqual(self.client.get(path, {"bounds": "nan,-113.7,53.6,-113.4"}).status_code, 400)
+        self.assertEqual(self.client.get(path, {"bounds": "10,-113.7,53.6,-113.4"}).status_code, 400)
+        fetch.assert_not_called()
+        fetch.side_effect = [
+            metadata(point_location="point", assessed_value="number", assessment_class_1="text", neighbourhood="text"),
+            [
+                {"point": {"coordinates": [-113.5, 53.51]}, "value": "410000", "neighbourhood": "Keswick"},
+                {"point": {"latitude": "53.52", "longitude": "-113.51"}, "value": "400000"},
+                {"point": {"coordinates": [-113.9, 53.51]}},
+                {"point": {"coordinates": [None, 53.51]}},
+            ],
+        ]
+        response = self.client.get(path, {"bounds": "53.4,-113.7,53.6,-113.4"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["points"], [
+            {"lat": 53.51, "lng": -113.5, "value": "410000", "neighbourhood": "Keswick"},
+            {"lat": 53.52, "lng": -113.51, "value": "400000", "neighbourhood": None},
+        ])
+        query = parse_qs(urlsplit(fetch.call_args.args[0]).query)
+        self.assertIn("within_box(point_location, 53.6, -113.7, 53.4, -113.4)", query["$where"][0])
+        self.assertEqual(query["$limit"], ["1501"])
