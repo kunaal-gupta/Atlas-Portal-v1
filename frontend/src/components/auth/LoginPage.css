@@ -1,0 +1,28 @@
+.atlas-login {
+  position: relative;
+  isolation: isolate;
+  background-color: #1b2b30;
+  background-image: radial-gradient(ellipse at 12% 18%, #3d565f 0, transparent 65%),
+    linear-gradient(135deg, #23383f, #182428);
+}
+
+.atlas-login::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, #1b2b30 4%, rgb(27 43 48 / 80%) 44%, rgb(27 43 48 / 22%) 100%),
+    url('/images/atlas-architecture.webp') center 52% / cover no-repeat;
+  content: '';
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+.atlas-login-card {
+  box-shadow: 0 18px 48px rgb(5 16 20 / 26%);
+}
+
+@media (max-width: 639px) {
+  .atlas-login::before {
+    opacity: 0.22;
+  }
+}
