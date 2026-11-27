@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .city_data import EdmontonDataView
+from .neighbourhood_data import EdmontonNeighbourhoodsView
 from .market_news import EdmontonNewsView
 from .views import (AgentViewSet, CalendarEventDetailView, CalendarEventListView,
                     DocumentViewSet, NewsViewSet, PortalSearchView,
@@ -14,6 +15,7 @@ router.register("agents", AgentViewSet, basename="agent")
 router.register("news", NewsViewSet, basename="news")
 router.register("documents", DocumentViewSet, basename="document")
 urlpatterns = [
+    path("city-data/neighbourhoods/", EdmontonNeighbourhoodsView.as_view(), name="edmonton-neighbourhoods"),
     path("city-data/<str:source>/<str:operation>/", EdmontonDataView.as_view(), name="edmonton-data"),
     path("market-news/edmonton/", EdmontonNewsView.as_view(), name="edmonton-news"),
     path("workspace/", WorkspaceView.as_view()),

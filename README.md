@@ -303,3 +303,9 @@ The assessment map uses OpenStreetMap tiles and clusters up to 1,500
 residential assessment records per query. **Search this area** reloads points
 for the displayed area of Edmonton. Cluster labels count loaded records. The
 browser needs access to `tile.openstreetmap.org` for the basemap.
+
+**Neighbourhoods → Neighbourhood Intelligence** uses Edmonton dataset
+`65fr-66s6` for interactive boundaries and a searchable list of wards, planning
+districts, and effective dates. The backend reads the dataset through its
+Socrata resource endpoint and caches it for seven days. Curated profiles are
+also available on the page.

@@ -1,3 +1,4 @@
+import type { MultiPolygon, Polygon } from 'geojson';
 import { getJson } from './http';
 
 export type CitySource = 'assessment' | 'property' | 'building' | 'development';
@@ -41,4 +42,33 @@ export type AssessmentMapResult = {
 export function getAssessmentMap(bounds: string) {
   const query = new URLSearchParams(bounds ? { bounds } : {});
   return getJson<AssessmentMapResult>(`/api/city-data/assessment/map/?${query}`);
+}
+
+export type CityNeighbourhood = {
+  number: string;
+  name: string;
+  display_name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  ward: string;
+  district: string;
+  boundary: Polygon | MultiPolygon | null;
+};
+
+type NeighbourhoodResult = { results: CityNeighbourhood[]; source_url: string };
+let pendingNeighbourhoods: Promise<NeighbourhoodResult> | undefined;
+
+export function getNeighbourhoods() {
+  pendingNeighbourhoods ??= getJson<NeighbourhoodResult>('/api/city-data/neighbourhoods/')
+    .finally(() => { pendingNeighbourhoods = undefined; });
+  return pendingNeighbourhoods;
+}
+
+export function neighbourhoodName(record: CityNeighbourhood) {
+  return record.display_name || record.name;
+}
+
+export function neighbourhoodKey(record: CityNeighbourhood) {
+  return `${record.number}:${record.start_date}:${record.name}`;
 }
