@@ -12,6 +12,11 @@ export type EdmontonHeadline = {
   published_at: string | null;
 };
 
-export async function getEdmontonNews() {
-  return getJson<{ results: EdmontonHeadline[]; stale: boolean }>('/api/market-news/edmonton/');
+type EdmontonFeed = { results: EdmontonHeadline[]; stale: boolean };
+let pendingEdmontonFeed: Promise<EdmontonFeed> | undefined;
+
+export function getEdmontonNews() {
+  pendingEdmontonFeed ??= getJson<EdmontonFeed>('/api/market-news/edmonton/')
+    .finally(() => { pendingEdmontonFeed = undefined; });
+  return pendingEdmontonFeed;
 }

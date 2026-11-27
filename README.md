@@ -242,13 +242,14 @@ FAQ is available at `/faq/` from the footer, alongside Agent Support Desk, rathe
 
 Homepage Business Insights shares one reporting response with the welcome metrics. It derives average closed-deal value from monthly volume/closed count and uses optional source history and listing categories for its charts. Demo data remains explicitly labelled; no forecasts or conversion rates are inferred.
 
-The homepage News & updates panel has Real Estate, Brokerage, and Training tabs.
-For Edmonton headlines, add `APITUBE_API_KEY` to the private `backend/.env`
-and restart Django. The backend calls `api.apitube.io` and caches successful
-results for six hours per worker to conserve requests. If the feed returns 503,
-check the Django log for the upstream HTTP status or connection error.
-Brokerage and Training
-use Atlas news records, with training grouped by title and keywords.
+The homepage and News & Events page have Real Estate, Brokerage, and Training
+tabs. Edmonton headlines use APITube when `APITUBE_API_KEY` is configured in
+`backend/.env`. Django uses the Edmonton Google News RSS feed when APITube
+returns no matching headlines, cannot be reached, or is unconfigured. Allow
+outbound HTTPS to `news.google.com` and, if using APITube, `api.apitube.io`.
+Nonempty results are cached for six hours per worker. If the feed returns 503,
+check the Django log for the upstream status or connection error. Brokerage and
+Training use Atlas news records, with training grouped by title and keywords.
 
 ## Homepage charts
 
