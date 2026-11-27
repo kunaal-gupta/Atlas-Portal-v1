@@ -295,8 +295,9 @@ City datasets directly and labels results with links to their source.
 Set overrides in `backend/.env` and restart Django. The server needs outbound
 HTTPS to `data.edmonton.ca`. Assessment summaries are cached for seven days,
 permit summaries and alerts for one day, and address results for 15 minutes.
-Atlas uses the latest assessment year only when the dataset exposes an
-assessment-year field. The assessment table reports averages and record counts.
+Atlas uses the latest assessment year when the dataset exposes an
+assessment-year field. Otherwise it uses the City's published coverage period,
+when present, independently of the metadata update timestamp. The assessment table reports averages and record counts.
 Permit amounts are declared construction values.
 
 The assessment map uses OpenStreetMap tiles and clusters up to 1,500
@@ -309,3 +310,8 @@ browser needs access to `tile.openstreetmap.org` for the basemap.
 districts, and effective dates. The backend reads the dataset through its
 Socrata resource endpoint and caches it for seven days. Curated profiles are
 also available on the page.
+
+The Property Assessment explorer offers map, table, and seven chart views.
+Use the left sidebar for record filters and map styling. Chart counts are
+based on loaded map records. The timeline shows the City's effective coverage
+rather than estimating a historical series from a single snapshot.
