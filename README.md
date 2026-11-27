@@ -245,7 +245,9 @@ Homepage Business Insights shares one reporting response with the welcome metric
 The homepage News & updates panel has Real Estate, Brokerage, and Training tabs.
 For Edmonton headlines, add `APITUBE_API_KEY` to the private `backend/.env`
 and restart Django. The backend calls `api.apitube.io` and caches successful
-results for six hours per worker to conserve requests. Brokerage and Training
+results for six hours per worker to conserve requests. If the feed returns 503,
+check the Django log for the upstream HTTP status or connection error.
+Brokerage and Training
 use Atlas news records, with training grouped by title and keywords.
 
 ## Homepage charts

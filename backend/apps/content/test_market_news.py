@@ -57,11 +57,16 @@ class EdmontonNewsTests(TestCase):
         }])
         method, target = connection.request.call_args.args
         self.assertEqual(method, "GET")
-        self.assertEqual(parse_qs(urlsplit(target).query)["title"], ["Edmonton"])
+        self.assertEqual(parse_qs(urlsplit(target).query), {
+            "title": ["Edmonton"], "language.code": ["en"], "per_page": ["10"],
+        })
         self.assertEqual(connection.request.call_args.kwargs["headers"]["X-API-Key"], "test-key")
         self.assertEqual(self.client.get(self.url).json(), body)
         connection.request.assert_called_once()
 
         cache.delete_many([CACHE_KEY, CACHE_KEY + ":refresh"])
         upstream.status = 429
-        self.assertEqual(self.client.get(self.url).json(), {**body, "stale": True})
+        with self.assertLogs("apps.content.market_news", level="WARNING") as logs:
+            self.assertEqual(self.client.get(self.url).json(), {**body, "stale": True})
+        self.assertIn("HTTP 429", logs.output[0])
+        self.assertNotIn("test-key", logs.output[0])
