@@ -47,7 +47,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'DM Sans', sans-serif;
@@ -73,9 +73,24 @@
       .category-section > div { max-width: none; margin: 0; padding: 0; }
       .portal-background { background-color: #F3F5F9; background-image: none; }
       .dark .portal-background { background-color: #142231; background-image: none; }
-      .welcome-surface { background: linear-gradient(105deg, #E8F5F6 0%, #f4fafb 48%, #ffffff 100%); border: 1px solid transparent; border-radius: 24px; }
-      .dark .welcome-surface { background: linear-gradient(105deg, #14363b 0%, #1c2c3d 80%); border-color: #30465d; }
-      .home-page, .home-page h1, .home-page h2, .home-page h3, .home-page h4, .home-page button { font-family: 'DM Sans', system-ui, sans-serif; }
+      .portal-background:has(.home-page) { background-color: #f7f6f2; }
+      .dark .portal-background:has(.home-page) { background-color: #142231; }
+      .welcome-surface {
+        min-height: clamp(188px, 20vw, 250px);
+        background: linear-gradient(90deg, rgb(21 25 26 / 0.9), rgb(21 25 26 / 0.55) 55%, rgb(21 25 26 / 0.12)),
+          #292d2e url('/images/atlas-architecture.webp') center 54% / cover no-repeat;
+        border: 1px solid #363b3d;
+        border-radius: 12px;
+      }
+      .home-page .welcome-surface h1 { color: #fff; font-family: 'Barlow Condensed', 'Manrope', sans-serif; font-size: clamp(2.4rem, 5vw, 4.35rem); font-weight: 600; line-height: 1; letter-spacing: 0.01em; }
+      .home-quick-link { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / 0.3); border-radius: 7px; background: #3e545c; color: #fff; padding: 0 11px; font-size: 13px; font-weight: 600; }
+      .home-quick-link:hover { background: #30474f; border-color: #c1d0d3; }
+      .home-quick-link-primary { background: #f3f5f4; border-color: #f3f5f4; color: #26393f; }
+      .home-quick-link-primary:hover { background: #dbe6e7; color: #26393f; }
+      .home-quick-link:focus-visible { outline-color: #d7e8eb; }
+      @media (max-width: 639px) {
+        .welcome-surface { background-position: center, 63% center; }
+      }
       .home-panel { padding: 16px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px rgb(16 24 39 / 0.035); }
       .dark .home-panel { border-color: #30465d; background: #101827; box-shadow: none; }
       .insight-chart-card { --chart-navy: #101827; padding: 20px; border: 1px solid #E2E8F0; border-radius: 24px; background: #fff; box-shadow: 0 12px 36px rgb(16 24 39 / 0.08); }

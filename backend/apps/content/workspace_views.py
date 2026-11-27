@@ -43,10 +43,20 @@ class WorkspaceView(APIView):
 
     def get(self, request):
         entries = WorkspaceEntry.objects.filter(user=request.user)
+        visited = entries.filter(accessed_at__isnull=False)
+        saved = EntryOutput(entries.filter(saved=True).order_by('title'), many=True).data
+        training = list(TrainingProgress.objects.filter(user=request.user).values('course', 'completed', 'updated_at'))
         return Response({
-            'saved': EntryOutput(entries.filter(saved=True).order_by('title'), many=True).data,
-            'recent': EntryOutput(entries.filter(accessed_at__isnull=False).order_by('-accessed_at')[:5], many=True).data,
-            'training': list(TrainingProgress.objects.filter(user=request.user).values('course', 'completed', 'updated_at')),
+            'saved': saved,
+            'recent': EntryOutput(visited.order_by('-accessed_at')[:5], many=True).data,
+            'training': training,
+            'metrics': {
+                'saved_resources': len(saved),
+                'viewed_resources': visited.count(),
+                'completed_courses': sum(course['completed'] for course in training),
+                'open_support_requests': SupportRequest.objects.filter(requester=request.user)
+                    .exclude(status=SupportRequest.Status.RESOLVED).count(),
+            },
         })
 
     def post(self, request):

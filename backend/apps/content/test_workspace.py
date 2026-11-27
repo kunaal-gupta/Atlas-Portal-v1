@@ -66,8 +66,18 @@ class WorkspaceAndSupportTests(TestCase):
     def test_saved_resources_and_training_are_isolated_per_account(self):
         self.assertEqual(self.client.post('/api/workspace/', {'url': '/training/new-agent/', 'title': 'Training', 'kind': 'page', 'saved': True, 'user': self.other.pk}, format='json').status_code, 200)
         self.assertEqual(self.client.post('/api/workspace/training/', {'course': 'new-agent', 'completed': True}, format='json').status_code, 200)
-        self.client.force_authenticate(self.other)
-        self.assertEqual(self.client.get('/api/workspace/').json(), {'saved': [], 'recent': [], 'training': []})
+        self.create_ticket()
+        self.assertEqual(self.client.get('/api/workspace/').json()['metrics'], {
+            'saved_resources': 1, 'viewed_resources': 0, 'completed_courses': 1, 'open_support_requests': 1,
+        })
+        for user in (self.other, self.admin):
+            self.client.force_authenticate(user)
+            self.assertEqual(self.client.get('/api/workspace/').json(), {
+                'saved': [], 'recent': [], 'training': [],
+                'metrics': {
+                    'saved_resources': 0, 'viewed_resources': 0, 'completed_courses': 0, 'open_support_requests': 0,
+                },
+            })
         self.assertEqual(WorkspaceEntry.objects.get().user, self.agent)
         self.assertEqual(TrainingProgress.objects.get().user, self.agent)
 
@@ -79,6 +89,7 @@ class WorkspaceAndSupportTests(TestCase):
             self.client.post('/api/workspace/', {**payload, 'url': f'/page/{i}/'}, format='json')
         data = self.client.get('/api/workspace/').json()
         self.assertEqual(len(data['recent']), 5)
+        self.assertEqual(data['metrics']['viewed_resources'], 8)
         self.assertEqual(len(data['saved']), 1)
         self.client.post('/api/workspace/', {**payload, 'saved': False}, format='json')
         self.assertEqual(self.client.get('/api/workspace/').json()['saved'], [])
