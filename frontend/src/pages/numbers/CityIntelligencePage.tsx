@@ -1,7 +1,9 @@
 import { Building2, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { citySourceLabels, getCityData, type CityResult, type CityRow, type CitySource } from '../../api/cityData';
 import PageHeader from '../../components/shared/PageHeader';
+
+const AssessmentMap = lazy(() => import('../../components/AssessmentMap'));
 
 const sources: CitySource[] = ['assessment', 'property', 'building', 'development'];
 const snapshotSources = ['assessment', 'building', 'development'] as const;
@@ -48,6 +50,9 @@ export default function CityIntelligencePage() {
   return (
     <div className="mx-auto max-w-[1400px] space-y-4 px-5 py-4 lg:px-10">
       <PageHeader category="Market" title="Edmonton City Intelligence" description="Municipal assessments, permits, and address research." icon={Building2} accent="from-indigo-600 to-indigo-500" />
+      <Suspense fallback={<p role="status" className={card}>Loading assessment map…</p>}>
+        <AssessmentMap />
+      </Suspense>
       <section className={card} aria-labelledby="city-address-heading">
         <h2 id="city-address-heading" className="home-section-title">Property and permit lookup</h2>
         <form className="mt-3 flex flex-wrap gap-2" onSubmit={async event => {

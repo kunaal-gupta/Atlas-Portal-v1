@@ -22,3 +22,23 @@ export const citySourceLabels: Record<CitySource, string> = {
   building: 'Building permits',
   development: 'Development permits',
 };
+
+export type AssessmentPoint = {
+  lat: number;
+  lng: number;
+  value: number | string | null;
+  neighbourhood: string | null;
+};
+
+export type AssessmentMapResult = {
+  points: AssessmentPoint[];
+  limited: boolean;
+  limit: number;
+  year: string | null;
+  source_url: string;
+};
+
+export function getAssessmentMap(bounds: string) {
+  const query = new URLSearchParams(bounds ? { bounds } : {});
+  return getJson<AssessmentMapResult>(`/api/city-data/assessment/map/?${query}`);
+}

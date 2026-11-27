@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 DATASET_ID = re.compile(r"[a-z0-9]{4}-[a-z0-9]{4}")
 ADDRESS = re.compile(r"([0-9]{1,8}[A-Z]?)\s+([A-Z0-9][A-Z0-9 '\-]{1,79})")
 MAX_BODY = 2 * 1024 * 1024
+MAP_LIMIT = 1500
+MAP_BOUNDS = (53.25, -113.85, 53.77, -113.15)  # south, west, north, east
 
 SOURCES = {
     "assessment": ("EDMONTON_ASSESSMENT_DATASET", "Property assessment", 7 * 86400),
@@ -27,6 +29,7 @@ SOURCES = {
     "development": ("EDMONTON_DEVELOPMENT_DATASET", "Development permits", 86400),
 }
 FIELDS = {
+    "point": ("point_location", "location", "geocoded_column", "geo_point"),
     "neighbourhood": ("neighbourhood", "neighbourhood_name"),
     "value": ("assessed_value", "total_assessed_value"),
     "year": ("assessment_year", "tax_year"),
@@ -77,7 +80,7 @@ def rows(dataset, **query):
 
 
 def schema(dataset):
-    key = f"atlas:edmonton:schema:v2:{dataset}"
+    key = f"atlas:edmonton:schema:v3:{dataset}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -95,6 +98,9 @@ def schema(dataset):
     mapping["issued"] = next((field for field in FIELDS["issued"] if columns.get(field) in DATE_TYPES), None)
     for name in ("value", "construction_value"):
         mapping[name] = next((field for field in FIELDS[name] if columns.get(field) in NUMBER_TYPES), None)
+    mapping["point"] = next(
+        (field for field in FIELDS["point"] if columns.get(field) in {"point", "location"}), None
+    )
     mapping["numeric_year"] = columns.get(mapping["year"]) in NUMBER_TYPES
     mapping["numeric_address"] = columns.get(mapping["number"]) in NUMBER_TYPES
     cache.set(key, mapping, 86400)
@@ -110,9 +116,9 @@ def quoted(value):
     return "'" + value.replace("'", "''") + "'"
 
 
-def assessment_summary(dataset, fields):
-    require(fields, "neighbourhood", "value", "assessment_class")
-    neighbourhood, value, category = (fields[name] for name in ("neighbourhood", "value", "assessment_class"))
+def residential_scope(dataset, fields):
+    require(fields, "value", "assessment_class")
+    value, category = (fields[name] for name in ("value", "assessment_class"))
     where = f"upper({category}) = 'RESIDENTIAL' AND {value} IS NOT NULL"
     year = None
     if fields["year"]:
@@ -123,6 +129,13 @@ def assessment_summary(dataset, fields):
             raise CityDataError("assessment year unavailable")
         year_value = year if fields["numeric_year"] else quoted(year)
         where += f" AND {year_column} = {year_value}"
+    return where, year
+
+
+def assessment_summary(dataset, fields):
+    require(fields, "neighbourhood")
+    where, year = residential_scope(dataset, fields)
+    neighbourhood, value = fields["neighbourhood"], fields["value"]
     totals = rows(dataset, **{
         "$select": f"count(*) as records, avg({value}) as average_assessment", "$where": where,
     })
@@ -132,6 +145,49 @@ def assessment_summary(dataset, fields):
         "$group": neighbourhood, "$order": "records DESC", "$limit": 15,
     })
     return {"year": year, "totals": totals[0] if totals else {}, "neighbourhoods": areas}
+
+
+def parse_map_bounds(raw):
+    if raw is None:
+        return MAP_BOUNDS
+    if len(raw) > 100:
+        raise ValueError("Invalid map bounds")
+    south, west, north, east = (round(float(value), 3) for value in raw.split(","))
+    min_lat, min_lng, max_lat, max_lng = MAP_BOUNDS
+    if not (min_lat <= south < north <= max_lat and min_lng <= west < east <= max_lng):
+        raise ValueError("Invalid map bounds")
+    return south, west, north, east
+
+
+def assessment_map(dataset, fields, bounds):
+    require(fields, "point")
+    where, year = residential_scope(dataset, fields)
+    south, west, north, east = bounds
+    where += f" AND within_box({fields['point']}, {north}, {west}, {south}, {east})"
+    records = rows(dataset, **{
+        "$select": select_fields(fields, ("point", "value", "neighbourhood")),
+        "$where": where,
+        "$limit": MAP_LIMIT + 1,
+    })
+    points = []
+    for record in records[:MAP_LIMIT]:
+        point = record.get("point")
+        if not isinstance(point, dict):
+            continue
+        coordinates = point.get("coordinates")
+        try:
+            if isinstance(coordinates, list) and len(coordinates) == 2:
+                lng, lat = map(float, coordinates)
+            else:
+                lat, lng = float(point.get("latitude")), float(point.get("longitude"))
+        except (ValueError, TypeError, OverflowError):
+            continue
+        if south <= lat <= north and west <= lng <= east:
+            points.append({
+                "lat": lat, "lng": lng,
+                "value": record.get("value"), "neighbourhood": record.get("neighbourhood"),
+            })
+    return {"points": points, "limit": MAP_LIMIT, "limited": len(records) > MAP_LIMIT, "year": year}
 
 
 def permit_summary(dataset, fields, year):
@@ -187,7 +243,7 @@ class EdmontonDataView(APIView):
 
     def get(self, request, source, operation):
         allowed_operations = {
-            "assessment": ("summary", "lookup"), "property": ("lookup",),
+            "assessment": ("summary", "lookup", "map"), "property": ("lookup",),
             "building": ("summary", "recent", "lookup"), "development": ("summary", "recent", "lookup"),
         }
         if operation not in allowed_operations.get(source, ()):
@@ -206,7 +262,14 @@ class EdmontonDataView(APIView):
         ):
             return Response({"detail": "Select a valid permit year."}, status=400)
 
+        bounds = None
         variant = address if operation == "lookup" else year if operation == "summary" and source != "assessment" else ""
+        if operation == "map":
+            try:
+                bounds = parse_map_bounds(request.query_params.get("bounds"))
+            except (ValueError, OverflowError):
+                return Response({"detail": "Select a valid area within Edmonton."}, status=400)
+            variant = str(bounds)
         key = f"atlas:edmonton:data:v1:{dataset}:{source}:{operation}:{sha256(variant.encode()).hexdigest()}"
         cached = cache.get(key)
         if cached is not None:
@@ -217,6 +280,8 @@ class EdmontonDataView(APIView):
                 result = property_lookup(dataset, fields, address)
             elif operation == "recent":
                 result = permit_alerts(dataset, fields)
+            elif operation == "map":
+                result = assessment_map(dataset, fields, bounds)
             elif source == "assessment":
                 result = assessment_summary(dataset, fields)
             else:
@@ -227,6 +292,6 @@ class EdmontonDataView(APIView):
             logger.warning("Edmonton %s %s unavailable: %s", source, operation, type(error).__name__)
         else:
             data = {**result, "source_url": f"https://data.edmonton.ca/d/{dataset}"}
-            cache.set(key, data, min(lifetime, 900) if operation == "lookup" else lifetime)
+            cache.set(key, data, min(lifetime, 900) if operation in ("lookup", "map") else lifetime)
             return Response(data)
         return Response({"detail": f"{label} could not be loaded from the City of Edmonton."}, status=503)

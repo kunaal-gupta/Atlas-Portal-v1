@@ -288,8 +288,8 @@ City datasets directly and labels results with links to their source.
 | --- | --- |
 | `EDMONTON_ASSESSMENT_DATASET` | Property assessment (default `q7d6-ambg`) |
 | `EDMONTON_BUILDING_DATASET` | General building permits (default `24uj-dj8v`) |
-| `EDMONTON_PROPERTY_DATASET` | Optional City Property Information dataset ID |
-| `EDMONTON_DEVELOPMENT_DATASET` | Optional City Development Permits dataset ID |
+| `EDMONTON_PROPERTY_DATASET` | Property Information (default `dkk9-cj3x`) |
+| `EDMONTON_DEVELOPMENT_DATASET` | Development Permits (default `2ccn-pwtu`) |
 | `EDMONTON_OPEN_DATA_TOKEN` | Optional private Socrata application token |
 
 Set overrides in `backend/.env` and restart Django. The server needs outbound
@@ -298,3 +298,8 @@ permit summaries and alerts for one day, and address results for 15 minutes.
 Atlas uses the latest assessment year only when the dataset exposes an
 assessment-year field. The assessment table reports averages and record counts.
 Permit amounts are declared construction values.
+
+The assessment map uses OpenStreetMap tiles and clusters up to 1,500
+residential assessment records per query. **Search this area** reloads points
+for the displayed area of Edmonton. Cluster labels count loaded records. The
+browser needs access to `tile.openstreetmap.org` for the basemap.
