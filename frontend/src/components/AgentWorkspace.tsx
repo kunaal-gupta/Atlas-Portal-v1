@@ -1,6 +1,7 @@
 import { BarChart3, CalendarDays, FileCheck2, FileText, FolderOpen, Home, Mail, Settings2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getCalendarEvents, type OutlookEvent } from '../api/calendar';
+import UpcomingMonth from './UpcomingMonth';
 import { usePortalUser } from './auth/AuthContext';
 import { useWorkspacePreferences, validWorkspaceUrl, type ToolkitLink } from '../lib/workspace';
 
@@ -44,7 +45,7 @@ export default function AgentWorkspace() {
     setCalendarState('loading');
     getCalendarEvents(now.toISOString(), until.toISOString()).then(data => {
       if (cancelled) return;
-      setEvents(data.events.filter(item => Number.isFinite(eventStart(item).getTime()) && (eventStart(item).getTime() >= now.getTime() || eventStart({ ...item, start: item.end }).getTime() > now.getTime())).sort((a, b) => eventStart(a).getTime() - eventStart(b).getTime()).slice(0, 3));
+      setEvents(data.events.filter(item => Number.isFinite(eventStart(item).getTime()) && (eventStart(item).getTime() >= now.getTime() || eventStart({ ...item, start: item.end }).getTime() > now.getTime())).sort((a, b) => eventStart(a).getTime() - eventStart(b).getTime()));
       setCalendarState('ready');
     }).catch(() => { if (!cancelled) setCalendarState('error'); });
     return () => { cancelled = true; };
@@ -77,11 +78,12 @@ export default function AgentWorkspace() {
     </section>
     <section id="upcoming-events" aria-labelledby="upcoming-heading" className={panel}>
       <div className="mb-3 flex items-center justify-between gap-2"><h2 id="upcoming-heading" className="home-section-title">Upcoming events & training</h2><CalendarDays className="h-5 w-5 text-indigo-600" /></div>
+      <UpcomingMonth eventDates={events.map(eventStart)} />
       {calendarState === 'loading' && <p role="status" className="py-4 text-sm text-slate-500">Loading upcoming events…</p>}
-      {calendarState === 'error' && <div className="py-3"><p className="text-sm text-slate-500">Upcoming events are unavailable. Check the calendar connection.</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-2 rounded-lg text-sm font-semibold text-indigo-700 dark:text-indigo-300">Try again</button></div>}
+      {calendarState === 'error' && <div className="py-3"><p className="text-sm text-slate-500">Outlook events are unavailable.</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-2 rounded-lg text-sm font-semibold text-indigo-700 dark:text-indigo-300">Try again</button></div>}
       {calendarState === 'ready' && !events.length && <p className="py-4 text-sm text-slate-500">No upcoming events in the next 90 days.</p>}
       <div className="grid gap-1.5">
-        {events.map(event => {
+        {events.slice(0, 3).map(event => {
           const date = eventStart(event);
           const outlookLink = event.webLink && validWorkspaceUrl(event.webLink) ? event.webLink : '';
           return (
