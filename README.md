@@ -276,3 +276,25 @@ The optional reporting response can additionally include:
 This is an illustrative API contract, not brokerage data. History allows up to 60 unique `YYYY-MM` records, sorted by month; omitted months remain absent. Each listing breakdown allows up to 12 uniquely named categories, must include unspecified values when applicable, and must sum to `activeListings`. Invalid optional chart fields are omitted without discarding valid company totals. Missing source history/categories produce explicit empty states; synthetic history is never added to valid API responses. Only the demonstration mode uses the separate fixtures in `frontend/src/data/demoReporting.ts` (May–October 2026 examples).
 
 Chart-data validation tests: `node --experimental-strip-types frontend/src/lib/reportingCharts.test.ts`.
+
+### Edmonton City Intelligence
+
+Open **The Numbers → City Intelligence** for Edmonton residential assessments,
+address and permit lookup, and monthly permit activity. The homepage
+**Development Watch** tab lists records from the last 30 days. Atlas queries
+City datasets directly and labels results with links to their source.
+
+| Backend setting | Dataset |
+| --- | --- |
+| `EDMONTON_ASSESSMENT_DATASET` | Property assessment (default `q7d6-ambg`) |
+| `EDMONTON_BUILDING_DATASET` | General building permits (default `24uj-dj8v`) |
+| `EDMONTON_PROPERTY_DATASET` | Optional City Property Information dataset ID |
+| `EDMONTON_DEVELOPMENT_DATASET` | Optional City Development Permits dataset ID |
+| `EDMONTON_OPEN_DATA_TOKEN` | Optional private Socrata application token |
+
+Set overrides in `backend/.env` and restart Django. The server needs outbound
+HTTPS to `data.edmonton.ca`. Assessment summaries are cached for seven days,
+permit summaries and alerts for one day, and address results for 15 minutes.
+Atlas uses the latest assessment year only when the dataset exposes an
+assessment-year field. The assessment table reports averages and record counts.
+Permit amounts are declared construction values.
