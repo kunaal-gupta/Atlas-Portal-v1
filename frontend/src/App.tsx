@@ -10,7 +10,7 @@ import SupportDeskPage from './pages/workspace/SupportDeskPage';
 import IntelligencePage from './pages/neighbourhood/IntelligencePage';
 import HomeDashboard from './components/HomeDashboard';
 import WelcomeMetrics from './components/WelcomeMetrics';
-import RequiredActionBanner from './components/RequiredActionBanner';
+import AnnouncementBar from './components/AnnouncementBar';
 import CategoryOverview from './components/shared/CategoryOverview';
 import MarketPage from './pages/numbers/MarketPage';
 import AgentPage from './pages/numbers/AgentPage';
@@ -65,8 +65,9 @@ function HomePage() {
     ? (displayName.toLowerCase() === 'kunaalgupta@hotmail.com' ? 'Kunaal' : displayName.split('@')[0].split(/[._-]/)[0].replace(/^./, letter => letter.toUpperCase()))
     : displayName.split(/\s+/)[0];
   return (
-    <div className="home-page mx-auto max-w-[1360px] px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pt-8">
-      <section aria-label="Welcome" className="welcome-surface flex flex-col items-start justify-end gap-5 px-5 py-7 sm:px-8 sm:py-7">
+    <div className="home-page mx-auto max-w-[1500px] px-4 pb-5 pt-3 sm:px-6 lg:px-8">
+      <AnnouncementBar />
+      <section aria-label="Welcome" className="welcome-surface flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <h1 className="min-w-0 break-words">
           Welcome back{firstName ? `, ${firstName}` : ' to Atlas'}.
         </h1>
@@ -77,8 +78,7 @@ function HomePage() {
           <a href="/the-numbers/market/" className="home-quick-link"><BarChart3 aria-hidden="true" className="h-4 w-4" />Market</a>
         </div>
       </section>
-      <RequiredActionBanner />
-      <div className="mt-6"><WelcomeMetrics /></div>
+      <div className="mt-3"><WelcomeMetrics /></div>
       <HomeDashboard />
     </div>
   );
@@ -92,5 +92,5 @@ export default function App() {
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
   const category = navigation.find(group => categoryPath(group) === window.location.pathname);
-  return <AuthContext.Provider value={user}><div className="portal-background min-h-screen bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><nav aria-label="Footer links" className="flex flex-wrap items-center gap-4"><a href="/faq/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">FAQ</a><a href="/support/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Agent Support Desk</a>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</nav></div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background flex min-h-dvh flex-col bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" className="flex-1" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><nav aria-label="Footer links" className="flex flex-wrap items-center gap-4"><a href="/faq/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">FAQ</a><a href="/support/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Agent Support Desk</a>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</nav></div></footer></div></AuthContext.Provider>;
 }

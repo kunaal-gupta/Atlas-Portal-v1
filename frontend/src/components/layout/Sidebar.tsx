@@ -27,7 +27,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
   useEffect(() => {
     const element = navigation.current;
     if (!element) return;
-    const update = () => document.documentElement.style.setProperty('--portal-navigation-bottom', `${76 + element.offsetHeight}px`);
+    const update = () => document.documentElement.style.setProperty('--portal-navigation-bottom', `${64 + element.offsetHeight}px`);
     update();
     const observer = new ResizeObserver(update);
     observer.observe(element);
@@ -37,7 +37,7 @@ export default function Sidebar({ groups }: { groups: NavigationGroup[] }) {
   const linkStyle = (selected: boolean) => `block rounded-xl px-3 py-3 text-sm transition-colors ${selected ? 'bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-700'}`;
 
   return (
-    <nav ref={navigation} className="sticky top-[76px] z-30 border-b border-white/10 bg-[#252a2c] px-5 pb-3 shadow-md lg:px-10" aria-label="Resource categories" onKeyDown={event => {
+    <nav ref={navigation} className="sticky top-16 z-30 border-b border-white/10 bg-[#252a2c] px-5 pb-1.5 shadow-md lg:px-10" aria-label="Resource categories" onKeyDown={event => {
       if (event.key === 'Escape') {
         if (mobileOpen) mobileToggle.current?.focus();
         else navigation.current?.querySelector<HTMLButtonElement>('[aria-expanded="true"]')?.focus();

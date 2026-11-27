@@ -76,14 +76,14 @@
       .portal-background:has(.home-page) { background-color: #f7f6f2; }
       .dark .portal-background:has(.home-page) { background-color: #142231; }
       .welcome-surface {
-        min-height: clamp(188px, 20vw, 250px);
+        min-height: clamp(92px, 8vw, 108px);
         background: linear-gradient(90deg, rgb(21 25 26 / 0.9), rgb(21 25 26 / 0.55) 55%, rgb(21 25 26 / 0.12)),
           #292d2e url('/images/atlas-architecture.webp') center 54% / cover no-repeat;
         border: 1px solid #363b3d;
         border-radius: 12px;
       }
-      .home-page .welcome-surface h1 { color: #fff; font-family: 'Barlow Condensed', 'Manrope', sans-serif; font-size: clamp(2.4rem, 5vw, 4.35rem); font-weight: 600; line-height: 1; letter-spacing: 0.01em; }
-      .home-quick-link { display: inline-flex; min-height: 42px; align-items: center; gap: 8px; border: 1px solid rgb(255 255 255 / 0.3); border-radius: 7px; background: #3e545c; color: #fff; padding: 0 11px; font-size: 13px; font-weight: 600; }
+      .home-page .welcome-surface h1 { color: #fff; font-family: 'Barlow Condensed', 'Manrope', sans-serif; font-size: clamp(2rem, 4.1vw, 3.6rem); font-weight: 600; line-height: 1; letter-spacing: 0.01em; }
+      .home-quick-link { display: inline-flex; min-height: 38px; align-items: center; gap: 7px; border: 1px solid rgb(255 255 255 / 0.3); border-radius: 7px; background: #3e545c; color: #fff; padding: 0 11px; font-size: 13px; font-weight: 600; }
       .home-quick-link:hover { background: #30474f; border-color: #c1d0d3; }
       .home-quick-link-primary { background: #f3f5f4; border-color: #f3f5f4; color: #26393f; }
       .home-quick-link-primary:hover { background: #dbe6e7; color: #26393f; }
@@ -92,6 +92,7 @@
         .welcome-surface { background-position: center, 63% center; }
       }
       .home-panel { padding: 16px; border: 1px solid #E2E8F0; border-radius: 20px; background: #fff; box-shadow: 0 5px 18px rgb(16 24 39 / 0.035); }
+      .home-page .home-panel { padding: 12px; border-radius: 14px; }
       .dark .home-panel { border-color: #30465d; background: #101827; box-shadow: none; }
       .insight-chart-card { --chart-navy: #101827; padding: 20px; border: 1px solid #E2E8F0; border-radius: 24px; background: #fff; box-shadow: 0 12px 36px rgb(16 24 39 / 0.08); }
       .dark .insight-chart-card { --chart-navy: #9cb0c3; border-color: #30465d; background: #101827; box-shadow: 0 12px 32px rgb(0 0 0 / 0.18); }

@@ -33,8 +33,8 @@ export default function WelcomeMetrics() {
   }, [attempt]);
 
   return (
-    <section id="numbers" aria-labelledby="workspace-metrics-title">
-      <h2 id="workspace-metrics-title" className="home-section-title mb-3">Your activity</h2>
+    <section id="numbers" aria-labelledby="workspace-metrics-title" className="lg:flex lg:items-center lg:gap-3">
+      <h2 id="workspace-metrics-title" className="home-section-title mb-1 shrink-0 lg:mb-0">Your activity</h2>
       {error ? (
         <div className="home-panel flex flex-wrap items-center justify-between gap-2 text-sm">
           <p role="status">Your activity is currently unavailable.</p>
@@ -44,11 +44,11 @@ export default function WelcomeMetrics() {
           </button>
         </div>
       ) : data ? (
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="home-panel grid flex-1 grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
           {metrics.map(({ key, label }) => (
-            <div key={key} className="home-panel min-w-0">
+            <div key={key} className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-2">
               <dt className="text-xs text-slate-600 dark:text-slate-300">{label}</dt>
-              <dd className="mt-1 text-2xl font-semibold tabular-nums text-slate-950 dark:text-white sm:text-3xl">
+              <dd className="text-xl font-semibold leading-tight tabular-nums text-slate-950 dark:text-white">
                 {data[key].toLocaleString()}
               </dd>
             </div>
