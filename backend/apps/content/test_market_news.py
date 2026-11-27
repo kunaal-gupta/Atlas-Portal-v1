@@ -22,10 +22,13 @@ class EdmontonNewsTests(TestCase):
         PortalAccess.objects.create(user=self.user, role=PortalAccess.Role.READ_ONLY)
 
     @override_settings(APITUBE_API_KEY="")
-    def test_feed_needs_portal_access_and_a_configured_key(self):
+    @patch("apps.content.market_news.fetch_google_headlines", side_effect=OSError)
+    def test_feed_requires_portal_access_and_reports_upstream_failure(self, google):
         self.assertIn(self.client.get(self.url).status_code, (401, 403))
         self.client.force_authenticate(self.user)
-        self.assertEqual(self.client.get(self.url).status_code, 503)
+        with self.assertLogs("apps.content.market_news", level="WARNING"):
+            self.assertEqual(self.client.get(self.url).status_code, 503)
+        google.assert_called_once()
 
     @override_settings(APITUBE_API_KEY="test-key")
     @patch("apps.content.market_news.HTTPSConnection")
@@ -70,3 +73,28 @@ class EdmontonNewsTests(TestCase):
             self.assertEqual(self.client.get(self.url).json(), {**body, "stale": True})
         self.assertIn("HTTP 429", logs.output[0])
         self.assertNotIn("test-key", logs.output[0])
+
+    @override_settings(APITUBE_API_KEY="test-key")
+    @patch("apps.content.market_news.read_feed")
+    def test_google_rss_supplies_headlines_when_apitube_has_no_matches(self, read_feed):
+        self.client.force_authenticate(self.user)
+        read_feed.side_effect = [
+            b'{"results": [{"title": "Edmonton hockey news"}]}',
+            b"""<rss><channel><item>
+              <title>Edmonton home sales rise - Local Paper</title>
+              <link>https://news.google.com/rss/articles/story</link>
+              <pubDate>Thu, 19 Nov 2026 14:00:00 GMT</pubDate>
+              <source>Local Paper</source>
+            </item></channel></rss>""",
+        ]
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"], [{
+            "title": "Edmonton home sales rise",
+            "url": "https://news.google.com/rss/articles/story",
+            "publisher": "Local Paper",
+            "published_at": "2026-11-19T14:00:00+00:00",
+        }])
+        self.assertEqual(read_feed.call_args.args[0], "news.google.com")
+        self.assertEqual(self.client.get(self.url).json(), response.json())
+        self.assertEqual(read_feed.call_count, 2)
