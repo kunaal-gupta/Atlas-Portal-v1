@@ -1,6 +1,7 @@
 """Edmonton headlines from APITube, with a shared cache per Django worker."""
 
 import json
+import logging
 import re
 from http.client import HTTPException, HTTPSConnection
 from urllib.parse import urlencode, urlsplit
@@ -11,6 +12,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .permissions import HasPortalAccess
+
+logger = logging.getLogger(__name__)
+
+
+class APITubeResponseError(Exception):
+    """A provider response that could not be used."""
+
 
 MARKET_TERMS = re.compile(
     r"\b(real estate|housing|rentals?|condos?|condominiums?|mortgages?|"
@@ -26,8 +34,7 @@ def fetch_headlines(api_key):
     query = urlencode({
         "title": "Edmonton",
         "language.code": "en",
-        "source.country.code": "ca",
-        "per_page": 50,
+        "per_page": 10,
     })
     connection = HTTPSConnection("api.apitube.io", timeout=5)
     try:
@@ -37,16 +44,16 @@ def fetch_headlines(api_key):
         })
         response = connection.getresponse()
         if response.status != 200:
-            raise ValueError(f"APITube returned HTTP {response.status}")
+            raise APITubeResponseError(f"HTTP {response.status}")
         body = response.read(MAX_RESPONSE_BYTES + 1)
         if len(body) > MAX_RESPONSE_BYTES:
-            raise ValueError("APITube response exceeded the size limit")
+            raise APITubeResponseError("Response exceeded the size limit")
     finally:
         connection.close()
 
     payload = json.loads(body)
     if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
-        raise ValueError("APITube returned an unexpected response")
+        raise APITubeResponseError("Unexpected response format")
 
     headlines = []
     seen = set()
@@ -100,8 +107,10 @@ class EdmontonNewsView(APIView):
         if cache.add(CACHE_KEY + ":refresh", True, timeout=300):
             try:
                 headlines = fetch_headlines(settings.APITUBE_API_KEY)
-            except (OSError, HTTPException, ValueError):
-                pass
+            except APITubeResponseError as error:
+                logger.warning("APITube Edmonton news refresh failed: %s", error)
+            except (OSError, HTTPException, ValueError) as error:
+                logger.warning("APITube Edmonton news refresh failed: %s", type(error).__name__)
             else:
                 cache.set(CACHE_KEY + ":stale", headlines, timeout=86400)
                 cache.set(CACHE_KEY, headlines, timeout=21600)
