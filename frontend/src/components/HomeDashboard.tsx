@@ -1,67 +1,81 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ChevronLeft, ChevronRight, Pause, Play,
-} from 'lucide-react';
-import { getNews } from '../api/news';
+import { ArrowUpRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getEdmontonNews, getNews, type EdmontonHeadline } from '../api/news';
+import type { NewsItem } from '../types';
 import AgentWorkspace from './AgentWorkspace';
-import NewsCard, { type NewsCardItem } from './news/NewsCard';
 
-type NewsItem = NewsCardItem & { accent: string };
+const tabs = ['Real Estate', 'Brokerage', 'Training'] as const;
+const trainingPattern = /\b(training|workshops?|learning|clinics?|webinars?)\b/i;
+const edmontonSearch = 'https://news.google.com/search?q=Edmonton+real+estate&hl=en-CA&gl=CA&ceid=CA:en';
+const dateFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', timeZone: 'America/Edmonton' });
 
-const fallbackNews: NewsItem[] = [
-  { id: 'internal-1', title: 'Atlas fall learning calendar is now live', excerpt: 'Reserve your seat for this month’s workshops, market briefings, and compliance clinics.', source: 'Atlas learning team', date: 'Sep 22', type: 'Training', href: '/resources/news-and-events/', accent: 'from-indigo-700 via-indigo-700 to-indigo-600' },
-  { id: 'outside-1', title: 'What shifting inventory means for buyers this fall', excerpt: 'A quick field guide to turning current market movement into confident client conversations.', source: 'Market intelligence', date: 'Sep 20', type: 'Outside', href: '/the-numbers/market/', accent: 'from-indigo-700 via-indigo-700 to-indigo-800' },
-  { id: 'internal-2', title: 'New listing presentation templates available', excerpt: 'The refreshed presentation kit includes editable slides, social assets, and follow-up materials.', source: 'Atlas marketing', date: 'Sep 18', type: 'Internal', href: '/marketing/templates/', accent: 'from-slate-600 via-indigo-700 to-indigo-800' },
-  { id: 'outside-2', title: 'Five neighbourhood trends clients are asking about', excerpt: 'Stay ahead with a concise overview of the local signals shaping this season’s decisions.', source: 'Local market desk', date: 'Sep 16', type: 'Outside', href: '/neighbourhoods/hoodq/', accent: 'from-indigo-700 via-indigo-700 to-indigo-800' },
-];
+type Feed<T> = { items: T[]; status: 'loading' | 'ready' | 'error' };
 
 export default function HomeDashboard() {
-  const [news, setNews] = useState(fallbackNews);
-  const [slide, setSlide] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [interacting, setInteracting] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [hidden, setHidden] = useState(document.hidden);
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const syncMotion = () => setReducedMotion(media.matches);
-    const syncVisibility = () => setHidden(document.hidden);
-    syncMotion();
-    media.addEventListener('change', syncMotion);
-    document.addEventListener('visibilitychange', syncVisibility);
-    return () => {
-      media.removeEventListener('change', syncMotion);
-      document.removeEventListener('visibilitychange', syncVisibility);
-    };
-  }, []);
-  useEffect(() => {
-    if (paused || interacting || reducedMotion || hidden || news.length <= 3) return;
-    const timer = window.setTimeout(() => setSlide(current => (current + 1) % news.length), 6000);
-    return () => window.clearTimeout(timer);
-  }, [paused, interacting, reducedMotion, hidden, news.length, slide]);
-  useEffect(() => {
-    getNews().then((rows) => {
-      if (!rows.length) return;
-      const internal = rows.slice(0, 2).map((item, index): NewsItem => ({
-        id: `api-${item.id}`, title: item.title, excerpt: item.summary || 'Open this update for the complete story and important details.', source: 'Atlas team',
-        date: new Date(item.published_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }), type: /training|workshop|learning|clinic/i.test(`${item.title} ${item.keywords || ''}`) ? 'Training' : 'Internal',
-        href: item.url || '/resources/news-and-events/', accent: index ? 'from-slate-600 via-indigo-700 to-indigo-800' : 'from-indigo-700 via-indigo-700 to-indigo-600',
-      }));
-      setNews([internal[0], fallbackNews[1], ...(internal[1] ? [internal[1]] : []), fallbackNews[3]]);
-    }).catch(() => undefined);
+  const [tab, setTab] = useState<(typeof tabs)[number]>('Real Estate');
+  const [market, setMarket] = useState<Feed<EdmontonHeadline> & { stale?: boolean }>({ items: [], status: 'loading' });
+  const [internal, setInternal] = useState<Feed<NewsItem>>({ items: [], status: 'loading' });
 
+  useEffect(() => {
+    let active = true;
+    getEdmontonNews().then(({ results, stale }) => {
+      if (active) setMarket({ items: results, stale, status: 'ready' });
+    }).catch(() => { if (active) setMarket({ items: [], status: 'error' }); });
+    getNews().then(items => {
+      if (active) setInternal({ items, status: 'ready' });
+    }).catch(() => { if (active) setInternal({ items: [], status: 'error' }); });
+    return () => { active = false; };
   }, []);
 
-  const visibleNews = [0, 1, 2].map((offset) => news[(slide + offset) % news.length]);
+  const external = tab === 'Real Estate';
+  const status = external ? market.status : internal.status;
+  const items = external ? market.items.map(article => ({
+    title: article.title, url: article.url, publisher: article.publisher, publishedAt: article.published_at,
+  })) : internal.items
+    .filter(item => trainingPattern.test(`${item.title} ${item.keywords || ''}`) === (tab === 'Training'))
+    .map(item => ({ title: item.title, url: item.url || '/resources/news-and-events/', publisher: 'Atlas', publishedAt: item.published_at }));
 
-  return <div className="mt-3 grid items-start gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
-    <AgentWorkspace />
-    <section id="news" aria-labelledby="news-heading" aria-roledescription="carousel" className="home-panel min-w-0 md:col-span-2 lg:col-span-1"
-      onMouseEnter={() => setInteracting(true)} onMouseLeave={event => setInteracting(event.currentTarget.contains(document.activeElement))}
-      onFocusCapture={() => setInteracting(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setInteracting(event.currentTarget.matches(':hover')); }}>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><div><h2 id="news-heading" className="home-section-title">News & updates</h2></div><div className="flex gap-2"><button type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? 'Resume automatic news' : 'Pause automatic news'} aria-pressed={paused} className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-500 dark:border-slate-700" disabled={reducedMotion} title={reducedMotion ? 'Automatic sliding is off for reduced motion' : undefined}>{paused || reducedMotion ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button><button onClick={() => setSlide((slide - 1 + news.length) % news.length)} aria-label="Previous news" className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button><button onClick={() => setSlide((slide + 1) % news.length)} aria-label="Next news" className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-slate-700 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button></div></div>
-      <div key={slide} className="news-slide grid gap-2 sm:grid-cols-3 lg:grid-cols-1" aria-live={paused || interacting || reducedMotion ? "polite" : "off"}>{visibleNews.map((item, index) => <NewsCard compact item={item} key={`${item.id}-${index}`} />)}</div>
-    </section>
-
-  </div>;
+  return (
+    <div className="mt-3 grid items-start gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+      <AgentWorkspace />
+      <section id="news" aria-labelledby="news-heading" className="home-panel min-w-0 md:col-span-2 lg:col-span-1">
+        <h2 id="news-heading" className="home-section-title">News &amp; updates</h2>
+        <div role="group" aria-label="News category" className="my-2 flex flex-wrap gap-1">
+          {tabs.map(name => (
+            <button key={name} type="button" aria-pressed={tab === name} onClick={() => setTab(name)}
+              className={`min-h-8 rounded-md px-2 text-xs font-semibold ${tab === name ? 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+              {name}
+            </button>
+          ))}
+        </div>
+        {status === 'loading' && <p role="status" className="py-2 text-sm text-slate-500">Loading news…</p>}
+        {status === 'error' && <p role="status" className="py-2 text-sm text-slate-500">{external ? 'Edmonton headlines are unavailable.' : 'Atlas updates are unavailable.'}</p>}
+        {status === 'ready' && !items.length && <p className="py-2 text-sm text-slate-500">No recent articles in this category.</p>}
+        {external && market.stale && <p className="text-xs text-slate-500">Showing previously fetched headlines.</p>}
+        {!!items.length && <ul className="divide-y divide-slate-200 dark:divide-slate-700">
+          {items.slice(0, 3).map(({ title, url, publishedAt, publisher }, index) => {
+            const date = publishedAt ? new Date(publishedAt) : null;
+            return (
+              <li key={`${url}-${index}`}>
+                <a href={url} target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}
+                  className="block rounded-md px-1 py-2 text-sm leading-snug hover:bg-slate-50 dark:hover:bg-slate-800">
+                  <span className="flex justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="min-w-0 truncate">{publisher}</span>
+                    {date && Number.isFinite(date.getTime()) && <time className="shrink-0" dateTime={date.toISOString()}>{dateFormat.format(date)}</time>}
+                  </span>
+                  <span className="mt-1 line-clamp-2 font-semibold">{title}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>}
+        <a href={external ? edmontonSearch : '/resources/news-and-events/'}
+          target={external ? '_blank' : undefined} rel={external ? 'noreferrer' : undefined}
+          className="mt-2 inline-flex min-h-8 items-center gap-1 text-xs font-semibold text-indigo-700 hover:underline dark:text-indigo-300">
+          {external ? 'View all Edmonton real estate news' : 'View all Atlas updates'}
+          <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5" />
+        </a>
+      </section>
+    </div>
+  );
 }
