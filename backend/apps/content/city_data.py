@@ -33,7 +33,9 @@ FIELDS = {
     "neighbourhood": ("neighbourhood", "neighbourhood_name"),
     "value": ("assessed_value", "total_assessed_value"),
     "year": ("assessment_year", "tax_year"),
-    "assessment_class": ("assessment_class_1", "assessment_class"),
+    "assessment_class": ("mill_class_1", "assessment_class_1", "assessment_class"),
+    "ward": ("ward", "civic_ward"),
+    "garage": ("garage",),
     "number": ("house_number", "street_number"),
     "street": ("street_name", "street"),
     "address": ("address", "site_address", "property_address"),
@@ -80,7 +82,7 @@ def rows(dataset, **query):
 
 
 def schema(dataset):
-    key = f"atlas:edmonton:schema:v3:{dataset}"
+    key = f"atlas:edmonton:schema:v4:{dataset}"
     cached = cache.get(key)
     if cached is not None:
         return cached
@@ -99,10 +101,22 @@ def schema(dataset):
     for name in ("value", "construction_value"):
         mapping[name] = next((field for field in FIELDS[name] if columns.get(field) in NUMBER_TYPES), None)
     mapping["point"] = next(
-        (field for field in FIELDS["point"] if columns.get(field) in {"point", "location"}), None
+        (field for field in (*FIELDS["point"], *columns) if columns.get(field) in {"point", "location"}
+         and isinstance(field, str) and field.isascii() and field.isidentifier()), None
     )
     mapping["numeric_year"] = columns.get(mapping["year"]) in NUMBER_TYPES
     mapping["numeric_address"] = columns.get(mapping["number"]) in NUMBER_TYPES
+    custom_fields = (metadata.get("metadata") or {}).get("custom_fields") or {}
+    coverage = next((
+        str(value) for section in custom_fields.values() if isinstance(section, dict)
+        for label, value in section.items() if label.casefold() == "period of coverage"
+    ), "")
+    dates = re.search(r"\b(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})\b", coverage, re.IGNORECASE)
+    if not dates:
+        dates = re.search(r"\beffective from (\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})\b",
+                          str(metadata.get("description") or ""), re.IGNORECASE)
+    mapping["coverage_year"] = dates[1][:4] if dates and dates[1][:4] == dates[2][:4] else None
+    mapping["coverage"] = list(dates.groups()) if dates else None
     cache.set(key, mapping, 86400)
     return mapping
 
@@ -116,11 +130,24 @@ def quoted(value):
     return "'" + value.replace("'", "''") + "'"
 
 
-def residential_scope(dataset, fields):
+def assessment_scope(dataset, fields, filters=None):
     require(fields, "value", "assessment_class")
     value, category = (fields[name] for name in ("value", "assessment_class"))
-    where = f"upper({category}) = 'RESIDENTIAL' AND {value} IS NOT NULL"
-    year = None
+    filters = filters or {}
+    where = f"{value} IS NOT NULL"
+    assessment_class = filters.get("class", "residential")
+    if assessment_class == "residential":
+        where += f" AND upper({category}) = 'RESIDENTIAL'"
+    elif assessment_class == "non-residential":
+        where += f" AND upper({category}) IN ('NON-RESIDENTIAL', 'NON RESIDENTIAL')"
+    for name in ("neighbourhood", "ward"):
+        if name in filters:
+            require(fields, name)
+            where += f" AND upper({fields[name]}) = {quoted(filters[name])}"
+    for name, operator in (("min_value", ">="), ("max_value", "<=")):
+        if name in filters:
+            where += f" AND {value} {operator} {filters[name]}"
+    year = fields["coverage_year"]
     if fields["year"]:
         year_column = fields["year"]
         latest = rows(dataset, **{"$select": f"max({year_column}) as assessment_year"})
@@ -134,7 +161,7 @@ def residential_scope(dataset, fields):
 
 def assessment_summary(dataset, fields):
     require(fields, "neighbourhood")
-    where, year = residential_scope(dataset, fields)
+    where, year = assessment_scope(dataset, fields)
     neighbourhood, value = fields["neighbourhood"], fields["value"]
     totals = rows(dataset, **{
         "$select": f"count(*) as records, avg({value}) as average_assessment", "$where": where,
@@ -159,13 +186,35 @@ def parse_map_bounds(raw):
     return south, west, north, east
 
 
-def assessment_map(dataset, fields, bounds):
+def map_filters(params):
+    category = params.get("class", "residential")
+    if category not in ("residential", "non-residential", "all"):
+        raise ValueError("Invalid assessment class")
+    filters = {"class": category}
+    for name in ("neighbourhood", "ward"):
+        value = params.get(name, "").strip().upper()
+        if len(value) > 80 or (value and not value.isprintable()):
+            raise ValueError("Invalid neighbourhood or ward")
+        if value:
+            filters[name] = value
+    for name in ("min_value", "max_value"):
+        value = params.get(name, "")
+        if value:
+            if not re.fullmatch(r"[0-9]{1,12}", value):
+                raise ValueError("Invalid assessed value")
+            filters[name] = int(value)
+    if filters.get("min_value", 0) > filters.get("max_value", 999999999999):
+        raise ValueError("Invalid assessed value range")
+    return filters
+
+
+def assessment_map(dataset, fields, bounds, filters):
     require(fields, "point")
-    where, year = residential_scope(dataset, fields)
+    where, year = assessment_scope(dataset, fields, filters)
     south, west, north, east = bounds
     where += f" AND within_box({fields['point']}, {north}, {west}, {south}, {east})"
     records = rows(dataset, **{
-        "$select": select_fields(fields, ("point", "value", "neighbourhood")),
+        "$select": select_fields(fields, ("point", "value", "neighbourhood", "ward", "number", "street", "suite", "assessment_class", "garage")),
         "$where": where,
         "$limit": MAP_LIMIT + 1,
     })
@@ -185,9 +234,11 @@ def assessment_map(dataset, fields, bounds):
         if south <= lat <= north and west <= lng <= east:
             points.append({
                 "lat": lat, "lng": lng,
-                "value": record.get("value"), "neighbourhood": record.get("neighbourhood"),
+                **{key: record.get(key) for key in ("value", "neighbourhood", "ward", "assessment_class", "garage", "suite")},
+                "address": " ".join(str(record[key]) for key in ("number", "street") if record.get(key)),
             })
-    return {"points": points, "limit": MAP_LIMIT, "limited": len(records) > MAP_LIMIT, "year": year}
+    return {"points": points, "limit": MAP_LIMIT, "limited": len(records) > MAP_LIMIT, "year": year,
+            "coverage": fields["coverage"] if fields["coverage_year"] == year else None}
 
 
 def permit_summary(dataset, fields, year):
@@ -267,10 +318,11 @@ class EdmontonDataView(APIView):
         if operation == "map":
             try:
                 bounds = parse_map_bounds(request.query_params.get("bounds"))
+                filters = map_filters(request.query_params)
             except (ValueError, OverflowError):
-                return Response({"detail": "Select a valid area within Edmonton."}, status=400)
-            variant = str(bounds)
-        key = f"atlas:edmonton:data:v1:{dataset}:{source}:{operation}:{sha256(variant.encode()).hexdigest()}"
+                return Response({"detail": "Check the map area, assessment class, and assessed value filters."}, status=400)
+            variant = str((bounds, filters))
+        key = f"atlas:edmonton:data:v2:{dataset}:{source}:{operation}:{sha256(variant.encode()).hexdigest()}"
         cached = cache.get(key)
         if cached is not None:
             return Response(cached)
@@ -281,7 +333,7 @@ class EdmontonDataView(APIView):
             elif operation == "recent":
                 result = permit_alerts(dataset, fields)
             elif operation == "map":
-                result = assessment_map(dataset, fields, bounds)
+                result = assessment_map(dataset, fields, bounds, filters)
             elif source == "assessment":
                 result = assessment_summary(dataset, fields)
             else:

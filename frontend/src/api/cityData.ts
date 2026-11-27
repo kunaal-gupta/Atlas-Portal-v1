@@ -29,18 +29,25 @@ export type AssessmentPoint = {
   lng: number;
   value: number | string | null;
   neighbourhood: string | null;
+  address?: string;
+  ward?: string | null;
+  assessment_class?: string | null;
+  garage?: string | null;
+  suite?: string | null;
 };
 
 export type AssessmentMapResult = {
   points: AssessmentPoint[];
+  coverage?: [string, string] | null;
   limited: boolean;
   limit: number;
   year: string | null;
   source_url: string;
 };
 
-export function getAssessmentMap(bounds: string) {
-  const query = new URLSearchParams(bounds ? { bounds } : {});
+export function getAssessmentMap(bounds: string, filters: Record<string, string>) {
+  const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value !== ''));
+  if (bounds) query.set('bounds', bounds);
   return getJson<AssessmentMapResult>(`/api/city-data/assessment/map/?${query}`);
 }
 
