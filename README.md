@@ -242,7 +242,11 @@ FAQ is available at `/faq/` from the footer, alongside Agent Support Desk, rathe
 
 Homepage Business Insights shares one reporting response with the welcome metrics. It derives average closed-deal value from monthly volume/closed count and uses optional source history and listing categories for its charts. Demo data remains explicitly labelled; no forecasts or conversion rates are inferred.
 
-The three-card news carousel advances every six seconds when additional items are available. Hover, keyboard focus, explicit pause, hidden tabs, and reduced-motion preferences pause automatic rotation; arrows and page controls remain available.
+The homepage News & updates panel has Real Estate, Brokerage, and Training tabs.
+For Edmonton headlines, add `APITUBE_API_KEY` to the private `backend/.env`
+and restart Django. The backend calls `api.apitube.io` and caches successful
+results for six hours per worker to conserve requests. Brokerage and Training
+use Atlas news records, with training grouped by title and keywords.
 
 ## Homepage charts
 

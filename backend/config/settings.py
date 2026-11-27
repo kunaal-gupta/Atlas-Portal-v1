@@ -72,6 +72,8 @@ MICROSOFT_TENANT_ID = os.environ.get("MICROSOFT_TENANT_ID", "")
 MICROSOFT_CLIENT_ID = os.environ.get("MICROSOFT_CLIENT_ID", "")
 MICROSOFT_CLIENT_SECRET = os.environ.get("MICROSOFT_CLIENT_SECRET", "")
 OUTLOOK_CALENDAR_MAILBOX = os.environ.get("OUTLOOK_CALENDAR_MAILBOX", "technology@mozaicrealty.ca")
+APITUBE_API_KEY = os.environ.get("APITUBE_API_KEY", "").strip()
+
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID", "")
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID", "")
 AZURE_CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET", "")
