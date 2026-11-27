@@ -9,6 +9,9 @@ import FaqPage from './pages/resources/FaqPage';
 import SupportDeskPage from './pages/workspace/SupportDeskPage';
 import IntelligencePage from './pages/neighbourhood/IntelligencePage';
 import HomeDashboard from './components/HomeDashboard';
+import HomeLinks from './components/HomeLinks';
+import AskAtlas from './components/AskAtlas';
+import MyResourcesPage from './pages/workspace/MyResourcesPage';
 import WelcomeMetrics from './components/WelcomeMetrics';
 import AnnouncementBar from './components/AnnouncementBar';
 import CategoryOverview from './components/shared/CategoryOverview';
@@ -39,6 +42,7 @@ import OtherPage from './pages/compliance/OtherPage';
 
 const routes: Record<string, React.ComponentType> = {
   '/support/': SupportDeskPage,
+  '/my-resources/': MyResourcesPage,
   '/faq/': FaqPage,
   '/neighbourhoods/intelligence/': IntelligencePage,
   '/the-numbers/market/city-intelligence/': CityIntelligencePage,
@@ -60,7 +64,7 @@ const navigation: NavigationGroup[] = [
   { name: 'Compliance', links: [['Brokerage Manual','/compliance/brokerage-manual/'],['FINTRAC','/compliance/fintrac/'],['Tips','/compliance/tips/'],['Other','/compliance/other/']].map(([name,path]) => ({name,path})) },
 ];
 
-function HomePage() {
+function HomePage({ onAsk }: { onAsk: () => void }) {
   const user = usePortalUser();
   const displayName = user?.name.trim() || '';
   const firstName = displayName.includes('@')
@@ -82,6 +86,7 @@ function HomePage() {
       </section>
       <div className="mt-3"><WelcomeMetrics /></div>
       <HomeDashboard />
+      <HomeLinks onAsk={onAsk} />
     </div>
   );
 }
@@ -89,10 +94,11 @@ function HomePage() {
 export default function App() {
   const [user, setUser] = useState<PortalUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [askOpen, setAskOpen] = useState(false);
   useEffect(() => { getSession().then(session => setUser(session.user)).catch(() => setUser(null)).finally(() => setLoading(false)); }, []);
   if (loading) return <div className="grid min-h-screen place-items-center bg-slate-50 text-indigo-600 dark:bg-slate-950 dark:text-indigo-300"><LoaderCircle className="h-8 w-8 animate-spin" aria-label="Loading Atlas" /></div>;
   if (!user) return <LoginPage onLogin={setUser} />;
   const Page = routes[window.location.pathname];
   const category = navigation.find(group => categoryPath(group) === window.location.pathname);
-  return <AuthContext.Provider value={user}><div className="portal-background flex min-h-dvh flex-col bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => setUser(null)} /><Sidebar groups={navigation} /><main id="main-content" className="flex-1" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><nav aria-label="Footer links" className="flex flex-wrap items-center gap-4"><a href="/faq/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">FAQ</a><a href="/support/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Agent Support Desk</a>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</nav></div></footer></div></AuthContext.Provider>;
+  return <AuthContext.Provider value={user}><div className="portal-background flex min-h-dvh flex-col bg-[#F3F5F9] text-slate-800 dark:bg-slate-950 dark:text-slate-100"><a href="#main-content" className="skip-link">Skip to content</a><Header groups={navigation} user={user} onLogout={() => { setAskOpen(false); setUser(null); }} /><Sidebar groups={navigation} /><main id="main-content" className="flex-1" tabIndex={-1}>{Page ? <Page /> : category ? <CategoryOverview group={category} pages={routes} /> : <HomePage onAsk={() => setAskOpen(true)} />}</main><footer className="mt-8 border-t border-slate-200/70 bg-white/60 py-6 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950"><div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4 px-5 lg:px-10"><span>© {new Date().getFullYear()} Atlas internal agent intelligence</span><nav aria-label="Footer links" className="flex flex-wrap items-center gap-4"><a href="/faq/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">FAQ</a><a href="/support/" className="inline-flex min-h-10 items-center rounded-lg px-1 font-semibold text-indigo-700 hover:underline dark:text-indigo-300">Agent Support Desk</a>{user.is_superuser && <a href="/admin/" className="font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Admin</a>}</nav></div></footer><AskAtlas open={askOpen} onOpen={() => setAskOpen(true)} onClose={() => setAskOpen(false)} groups={navigation} /></div></AuthContext.Provider>;
 }

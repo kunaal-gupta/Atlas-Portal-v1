@@ -1,10 +1,11 @@
 import { ChevronDown, ChevronRight, FilePlus2, FileText, Folder, FolderPlus, LayoutGrid, List, Search } from 'lucide-react';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { getWorkspaceResources, recordResourceVisit, saveResource } from '../../api/workspace';
 import type { DocumentItem } from '../../types';
 import { usePortalUser } from '../auth/AuthContext';
 import EmptyState from './EmptyState';
 import { CategorySectionContext } from './CategoryOverview';
-import ResourceCard, { FileActions, formatModifiedDate, getFileType, isImageFile } from './ResourceCard';
+import ResourceCard, { FileActions, FileBookmarksContext, formatModifiedDate, getFileType, isImageFile } from './ResourceCard';
 
 interface FolderNode { id: number | null; files: DocumentItem[]; folders: Map<string, FolderNode> }
 type View = 'grid' | 'list';
@@ -28,7 +29,7 @@ function Files({ files, view }: { files: DocumentItem[]; view: View }) {
   if (view === 'grid') return <div className="grid min-w-0 grid-cols-1 gap-3 py-2 md:grid-cols-2 xl:grid-cols-3">{files.map(file => <ResourceCard key={file.id} id={file.id} title={file.title} href={file.url} updatedDate={file.updated_date} />)}</div>;
   return <div className="divide-y divide-slate-100 dark:divide-slate-800">{files.map(file => <div key={file.id} data-file-row className="flex min-w-0 items-center gap-3 py-3">
     <FileText className="h-5 w-5 shrink-0 text-indigo-600" />
-    <a href={file.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-indigo-700"><span title={file.title} className="block truncate text-sm font-medium">{file.title}</span><span className="block text-xs text-slate-500">{getFileType(file.url)}<span className="sm:hidden"> · {formatModifiedDate(file.updated_date)}</span></span></a>
+    <a href={file.url} onClick={() => recordResourceVisit(file.url, file.title)} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-indigo-700"><span title={file.title} className="block truncate text-sm font-medium">{file.title}</span><span className="block text-xs text-slate-500">{getFileType(file.url)}<span className="sm:hidden"> · {formatModifiedDate(file.updated_date)}</span></span></a>
     <span className="hidden shrink-0 text-xs text-slate-500 sm:block">{formatModifiedDate(file.updated_date)}</span><FileActions id={file.id} title={file.title} href={file.url} />
   </div>)}</div>;
 }
@@ -58,7 +59,45 @@ export default function DocumentLibrary({ documents }: { documents: DocumentItem
     });
   }, [documents, query, sort]);
   const tree = useMemo(() => buildTree(visible), [visible]);
-  return <div className="min-w-0">
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState<Set<string>>(new Set());
+  const [notice, setNotice] = useState('');
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getWorkspaceResources().then(data => {
+      if (active) setSaved(new Set(data.saved.map(item => item.url)));
+    }).catch(() => { if (active) setNotice('Saved status could not be loaded.'); })
+      .finally(() => { if (active) setReady(true); });
+    return () => { active = false; };
+  }, []);
+
+  const toggle = async (url: string, title: string) => {
+    const next = !saved.has(url);
+    setNotice('');
+    setPending(current => new Set(current).add(url));
+    try {
+      await saveResource(url, title, next);
+      setSaved(current => {
+        const updated = new Set(current);
+        if (next) updated.add(url);
+        else updated.delete(url);
+        return updated;
+      });
+    } catch {
+      setNotice('The bookmark could not be updated. Try again.');
+    } finally {
+      setPending(current => new Set([...current].filter(item => item !== url)));
+    }
+  };
+
+  return <FileBookmarksContext.Provider value={{
+    contains: url => saved.has(url),
+    pending: url => !ready || pending.has(url),
+    toggle: (url, title) => { void toggle(url, title); },
+  }}><div className="min-w-0">
+    {notice && <p role="status" className="mb-2 text-xs text-amber-800 dark:text-amber-300">{notice}</p>}
     <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
       <div>
         <Heading className="text-xl font-semibold">Resource library</Heading>
@@ -72,5 +111,5 @@ export default function DocumentLibrary({ documents }: { documents: DocumentItem
       </div>
     </div>
     {!visible.length ? (documents.length > 0 ? <EmptyState title="No matching files" message="Try a different filter." /> : null) : <div className="min-w-0 border-t border-slate-200 dark:border-slate-700">{[...tree.folders.entries()].map(([name, node]) => <FolderSection key={name} name={name} node={node} view={view} filtering={Boolean(query.trim())} />)}<Files files={tree.files} view={view} /></div>}
-  </div>;
+  </div></FileBookmarksContext.Provider>;
 }
